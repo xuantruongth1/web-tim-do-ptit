@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách đồ vật</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">PTIT Lost & Found</div>
+        <nav>
+            <a href="/">Trang chủ</a>
+            <a href="/lost">Đăng mất đồ</a>
+            <a href="/found">Đăng nhặt được</a>
+            <a href="/list">Danh sách</a>
+            <a href="/search">Tìm kiếm</a>
+            <a href="/match">Gợi ý</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h2>Danh sách đồ bị mất</h2>
+        {% for i in lost %}
+        <div class="item">
+            <h3>{{ i[1] }}</h3>
+            <p><b>Loại:</b> {{ i[2] }}</p>
+            <p><b>Mô tả:</b> {{ i[3] }}</p>
+            <p><b>Địa điểm:</b> {{ i[4] }}</p>
+            <p><b>Thời gian:</b> {{ i[5] }}</p>
+            <p><b>Liên hệ:</b> {{ i[6] }}</p>
+        </div>
+        {% endfor %}
+
+        <h2 style="margin-top: 40px;">Danh sách đồ nhặt được</h2>
+        {% for i in found %}
+        <div class="item">
+            <h3>{{ i[1] }}</h3>
+            <p><b>Loại:</b> {{ i[2] }}</p>
+            <p><b>Mô tả:</b> {{ i[3] }}</p>
+            <p><b>Địa điểm:</b> {{ i[4] }}</p>
+            <p><b>Thời gian:</b> {{ i[5] }}</p>
+            <p><b>Liên hệ:</b> {{ i[6] }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
