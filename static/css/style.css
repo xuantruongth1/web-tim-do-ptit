@@ -47,7 +47,7 @@ body {
 
 /* Hero */
 .hero {
-    background: url("../images/hero.jpg") center/cover no-repeat;
+    background: url("/static/images/hero.png") center/cover no-repeat;
     height: 500px;
     position: relative;
 }
@@ -151,6 +151,11 @@ h2 {
     width: 100%;
     height: 210px;
     object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.card:hover img {
+    transform: scale(1.05);
 }
 
 .card-content {
@@ -160,6 +165,7 @@ h2 {
 .card-content h3 {
     margin-bottom: 10px;
     color: #0b1f3a;
+    font-size: 20px;
 }
 
 .card-content p {
@@ -243,6 +249,11 @@ button:hover {
     border-left: 5px solid #007bff;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: 0.3s;
+}
+
+.item:hover {
+    transform: translateY(-4px);
 }
 
 .item h3 {
@@ -311,6 +322,24 @@ button:hover {
     margin-bottom: 12px;
 }
 
+/* Item image */
+.item-image {
+    width: 220px;
+    max-width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin: 12px 0;
+    display: block;
+    border: 1px solid #ddd;
+}
+
+/* File input */
+input[type="file"] {
+    padding: 8px;
+    background: white;
+}
+
 /* Footer */
 .footer {
     background: #0b1f3a;
@@ -345,4 +374,40 @@ button:hover {
     .hero {
         height: 420px;
     }
+}
+
+/* ===== TEAM SECTION ===== */
+.team-box {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    margin: 50px auto;
+    max-width: 600px;
+    text-align: center;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+}
+
+.team-box h2 {
+    margin-bottom: 20px;
+    color: #0b1f3a;
+}
+
+.team-member {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.team-member:last-child {
+    border-bottom: none;
+}
+
+.name {
+    font-weight: bold;
+    font-size: 18px;
+    color: #007bff;
+}
+
+.id {
+    font-size: 14px;
+    color: #666;
 }

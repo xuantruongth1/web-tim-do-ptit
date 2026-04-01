@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+
     <header class="navbar">
         <div class="logo">PTIT Lost & Found</div>
         <nav>
@@ -22,16 +23,23 @@
     <div class="container">
         <div class="form-box">
             <h2>Đăng mất đồ</h2>
-            <form method="post">
+
+            <form method="post" enctype="multipart/form-data">
                 <input type="text" name="item_name" placeholder="Tên đồ vật" required>
                 <input type="text" name="category" placeholder="Loại đồ vật" required>
                 <textarea name="description" placeholder="Mô tả chi tiết" rows="5"></textarea>
                 <input type="text" name="location" placeholder="Địa điểm mất" required>
                 <input type="text" name="contact" placeholder="Thông tin liên hệ" required>
+
+                <label style="margin-top:10px; display:block;">📷 Ảnh đồ vật:</label>
+                <input type="file" name="image" accept="image/*">
+
                 <button type="submit">Đăng bài</button>
             </form>
+
             <a class="back-link" href="/">← Quay về trang chủ</a>
         </div>
     </div>
+
 </body>
 </html>

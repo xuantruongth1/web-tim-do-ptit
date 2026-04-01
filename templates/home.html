@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trang chủ - Website tìm đồ thất lạc PTIT</title>
+    <title>PTIT Lost & Found</title>
+
+    <!-- CSS đúng chuẩn -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
+    <!-- NAVBAR -->
     <header class="navbar">
         <div class="logo">PTIT Lost & Found</div>
         <nav>
@@ -20,14 +23,17 @@
         </nav>
     </header>
 
+    <!-- HERO -->
     <section class="hero">
         <div class="hero-overlay">
             <div class="hero-content">
-                <h1>Website tìm lại đồ vật thất lạc trong giảng đường PTIT</h1>
+                <h1>PTIT Lost & Found System</h1>
                 <p>
-                    Hỗ trợ sinh viên đăng tin mất đồ, nhặt được đồ và tìm kiếm nhanh chóng
-                    trong khuôn viên Học viện Công nghệ Bưu chính Viễn thông.
+                    Nhanh chóng – Thuận tiện – Hiệu quả  
+                    <br>
+                    Hỗ trợ sinh viên tìm lại đồ thất lạc trong khuôn viên PTIT
                 </p>
+
                 <div class="hero-buttons">
                     <a href="/lost" class="btn-primary">Đăng mất đồ</a>
                     <a href="/found" class="btn-secondary">Đăng nhặt được</a>
@@ -36,68 +42,96 @@
         </div>
     </section>
 
+    <!-- INTRO -->
     <section class="intro container">
         <h2>Giới thiệu hệ thống</h2>
         <p>
-            Hệ thống được xây dựng nhằm hỗ trợ sinh viên và giảng viên PTIT tìm lại đồ vật
-            bị thất lạc trong giảng đường một cách nhanh chóng, thuận tiện và minh bạch hơn
-            so với việc tìm kiếm thủ công qua các nhóm chat hoặc mạng xã hội.
+            Hệ thống giúp sinh viên và giảng viên PTIT tìm lại đồ thất lạc nhanh chóng
+            thông qua việc đăng tin, tìm kiếm và gợi ý trùng khớp thông minh.
         </p>
     </section>
 
+    <!-- FEATURES -->
     <section class="features container">
         <h2>Chức năng chính</h2>
 
         <div class="feature-grid">
+
             <div class="card">
-                <img src="{{ url_for('static', filename='images/lost.jpg') }}" alt="Đăng mất đồ">
+                <img src="{{ url_for('static', filename='images/lost.jpg') }}">
                 <div class="card-content">
                     <h3>Đăng mất đồ</h3>
-                    <p>Người dùng có thể đăng tin về đồ vật bị thất lạc với thông tin chi tiết.</p>
+                    <p>Đăng thông tin đồ vật bị mất.</p>
                     <a href="/lost" class="card-btn">Truy cập</a>
                 </div>
             </div>
 
             <div class="card">
-                <img src="{{ url_for('static', filename='images/found.jpg') }}" alt="Đăng nhặt được">
+                <img src="{{ url_for('static', filename='images/found.jpg') }}">
                 <div class="card-content">
                     <h3>Đăng nhặt được</h3>
-                    <p>Cập nhật thông tin về đồ vật đã nhặt được để tìm chủ sở hữu.</p>
+                    <p>Giúp người khác tìm lại đồ.</p>
                     <a href="/found" class="card-btn">Truy cập</a>
                 </div>
             </div>
 
             <div class="card">
-                <img src="{{ url_for('static', filename='images/search.jpg') }}" alt="Tìm kiếm">
+                <img src="{{ url_for('static', filename='images/search.jpg') }}">
                 <div class="card-content">
                     <h3>Tìm kiếm</h3>
-                    <p>Tìm theo tên đồ vật, loại đồ, địa điểm để tăng khả năng khớp thông tin.</p>
+                    <p>Tìm đồ nhanh theo từ khóa.</p>
                     <a href="/search" class="card-btn">Truy cập</a>
                 </div>
             </div>
+
         </div>
     </section>
 
+    <!-- STATS -->
     <section class="stats container">
-        <h2>Lợi ích của hệ thống</h2>
+        <h2>Thống kê hệ thống</h2>
+
         <div class="stats-grid">
+
             <div class="stat-box">
-                <h3>Nhanh chóng</h3>
-                <p>Tra cứu thông tin tập trung, không cần tìm thủ công qua nhiều nơi.</p>
+                <h3>{{ lost_count }}</h3>
+                <p>Đồ bị mất</p>
             </div>
+
             <div class="stat-box">
-                <h3>Thuận tiện</h3>
-                <p>Đăng bài và tìm kiếm dễ dàng thông qua giao diện website.</p>
+                <h3>{{ found_count }}</h3>
+                <p>Đồ nhặt được</p>
             </div>
+
             <div class="stat-box">
-                <h3>Hiệu quả</h3>
-                <p>Hỗ trợ gợi ý trùng khớp giữa bài đăng mất đồ và nhặt được đồ.</p>
+                <h3>{{ lost_count + found_count }}</h3>
+                <p>Tổng bài đăng</p>
             </div>
+
         </div>
     </section>
 
+<div class="team-box">
+    <h2>Nhóm thực hiện</h2>
+
+    <div class="team-member">
+        <p class="name">Mai Xuân Trường</p>
+        <p class="id">B23DCAT309</p>
+    </div>
+
+    <div class="team-member">
+        <p class="name">Bùi Quang Huy</p>
+        <p class="id">B23DCAT124</p>
+    </div>
+
+    <div class="team-member">
+        <p class="name">Đặng Văn Quân</p>
+        <p class="id">B23DCAT244</p>
+    </div>
+</div>
+    <!-- FOOTER -->
     <footer class="footer">
-        <p>© 2026 - Website tìm đồ thất lạc PTIT | Bài tập lớn Python</p>
+        <p>© 2026 - PTIT Lost & Found | Bài tập lớn Python</p>
     </footer>
 
 </body>

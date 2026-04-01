@@ -2,34 +2,45 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gợi ý trùng khớp</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <header class="navbar">
-        <div class="logo">PTIT Lost & Found</div>
-        <nav>
-            <a href="/">Trang chủ</a>
-            <a href="/lost">Đăng mất đồ</a>
-            <a href="/found">Đăng nhặt được</a>
-            <a href="/list">Danh sách</a>
-            <a href="/search">Tìm kiếm</a>
-            <a href="/match">Gợi ý</a>
-        </nav>
-    </header>
 
-    <div class="container">
-        <h2>Gợi ý trùng khớp</h2>
+<header class="navbar">
+    <div class="logo">PTIT Lost & Found</div>
+    <nav>
+        <a href="/">Trang chủ</a>
+        <a href="/lost">Đăng mất đồ</a>
+        <a href="/found">Đăng nhặt được</a>
+        <a href="/list">Danh sách</a>
+        <a href="/search">Tìm kiếm</a>
+        <a href="/match">Gợi ý</a>
+    </nav>
+</header>
 
-        {% for l, f, s in results %}
-        <div class="match-box">
-            <h3 class="match-title">Bài đăng có khả năng trùng khớp</h3>
-            <p><b>Đồ bị mất:</b> {{ l[1] }} - {{ l[3] }} - {{ l[4] }}</p>
-            <p><b>Đồ nhặt được:</b> {{ f[1] }} - {{ f[3] }} - {{ f[4] }}</p>
-            <span class="match-score">Điểm khớp: {{ s }}</span>
-        </div>
-        {% endfor %}
+<div class="container">
+    <h2>Gợi ý trùng khớp</h2>
+
+    {% for l, f, s in results %}
+    <div class="match-box">
+
+        <h3 class="match-title">Khả năng trùng khớp</h3>
+
+        <p><b>Đồ mất:</b> {{ l[1] }}</p>
+        {% if l[7] %}
+        <img src="{{ url_for('static', filename='uploads/' ~ l[7]) }}" class="item-image">
+        {% endif %}
+
+        <p><b>Đồ nhặt:</b> {{ f[1] }}</p>
+        {% if f[7] %}
+        <img src="{{ url_for('static', filename='uploads/' ~ f[7]) }}" class="item-image">
+        {% endif %}
+
+        <span class="match-score">Điểm: {{ s }}</span>
     </div>
+    {% endfor %}
+</div>
+
 </body>
 </html>
