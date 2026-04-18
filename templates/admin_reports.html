@@ -1,0 +1,135 @@
+{% extends "base_admin.html" %}
+{% block admin_title %}Báo cáo vi phạm{% endblock %}
+
+{% block admin_content %}
+<div class="adm-page-head">
+    <h1>🚨 Báo cáo vi phạm</h1>
+    <p>Xem xét và duyệt/từ chối các báo cáo lừa đảo từ người dùng. Tổng {{ total }} báo cáo.</p>
+</div>
+
+<!-- Filter tabs -->
+<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+    <a href="{{ url_for('admin_reports', status='pending') }}"
+       style="padding:8px 18px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;
+              {% if status_filter=='pending' %}background:#ef4444;color:white{% else %}background:#1e293b;color:#94a3b8{% endif %}">
+        ⏳ Chờ duyệt
+    </a>
+    <a href="{{ url_for('admin_reports', status='approved') }}"
+       style="padding:8px 18px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;
+              {% if status_filter=='approved' %}background:#16a34a;color:white{% else %}background:#1e293b;color:#94a3b8{% endif %}">
+        ✅ Đã duyệt
+    </a>
+    <a href="{{ url_for('admin_reports', status='rejected') }}"
+       style="padding:8px 18px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;
+              {% if status_filter=='rejected' %}background:#64748b;color:white{% else %}background:#1e293b;color:#94a3b8{% endif %}">
+        ❌ Đã từ chối
+    </a>
+</div>
+
+<div class="adm-card">
+    <div class="adm-card-title">
+        {% if status_filter == 'pending' %}⏳ Báo cáo chờ duyệt
+        {% elif status_filter == 'approved' %}✅ Báo cáo đã duyệt
+        {% else %}❌ Báo cáo đã từ chối{% endif %}
+    </div>
+
+    {% if reports %}
+    <div style="display:flex;flex-direction:column;gap:14px;">
+        {% for r in reports %}
+        <div style="background:#1e293b;border-radius:12px;padding:16px 18px;border:1px solid rgba(255,255,255,0.06);">
+            <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;">
+                <!-- Left: info -->
+                <div style="flex:1;min-width:240px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+                        <span style="font-size:11px;font-weight:800;color:#94a3b8;">BÁO CÁO #{{ r['id'] }}</span>
+                        {% if r['status'] == 'pending' %}
+                        <span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;">⏳ Chờ duyệt</span>
+                        {% elif r['status'] == 'approved' %}
+                        <span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;">✅ Đã duyệt</span>
+                        {% else %}
+                        <span style="background:#f1f5f9;color:#64748b;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;">❌ Từ chối</span>
+                        {% endif %}
+                        <span style="font-size:11px;color:#64748b;">{{ r['created_at'][:16] if r['created_at'] else '' }}</span>
+                    </div>
+
+                    <div style="font-size:13px;color:#cbd5e1;margin-bottom:6px;">
+                        <span style="color:#94a3b8;">Bài đăng:</span>
+                        {% if r['post_title'] %}
+                        <a href="{{ url_for('post_detail', post_id=r['post_id']) }}" target="_blank"
+                           style="color:#60a5fa;text-decoration:none;font-weight:700;">
+                            {{ r['post_title'][:60] }}{% if r['post_title']|length > 60 %}…{% endif %}
+                        </a>
+                        <span style="color:#475569;font-size:11px;">(#{{ r['post_id'] }})</span>
+                        {% else %}
+                        <span style="color:#475569;">Bài đã bị xóa (#{{ r['post_id'] }})</span>
+                        {% endif %}
+                    </div>
+
+                    <div style="font-size:13px;color:#cbd5e1;margin-bottom:10px;">
+                        <span style="color:#94a3b8;">Người báo cáo:</span>
+                        <span style="font-weight:700;">{{ r['reporter_name'] or r['reporter_username'] or 'Ẩn danh' }}</span>
+                    </div>
+
+                    <div style="background:#0f172a;border-radius:8px;padding:12px 14px;border-left:3px solid #ef4444;">
+                        <div style="font-size:11px;font-weight:700;color:#ef4444;margin-bottom:6px;">NỘI DUNG BÁO CÁO:</div>
+                        <div style="font-size:13px;color:#e2e8f0;line-height:1.6;white-space:pre-wrap;">{{ r['content'] }}</div>
+                    </div>
+
+                    {% if r['admin_note'] %}
+                    <div style="margin-top:10px;background:rgba(96,165,250,0.08);border-radius:8px;padding:10px 12px;border-left:3px solid #60a5fa;">
+                        <div style="font-size:11px;font-weight:700;color:#60a5fa;margin-bottom:4px;">GHI CHÚ ADMIN:</div>
+                        <div style="font-size:13px;color:#93c5fd;">{{ r['admin_note'] }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Right: actions -->
+                {% if r['status'] == 'pending' %}
+                <div style="display:flex;flex-direction:column;gap:10px;min-width:220px;">
+                    <!-- Approve form -->
+                    <form method="POST" action="{{ url_for('admin_approve_report', report_id=r['id']) }}">
+                        <textarea name="admin_note" rows="2" placeholder="Ghi chú (tùy chọn)..."
+                            style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;font-size:12px;resize:none;margin-bottom:6px;box-sizing:border-box;"></textarea>
+                        <button type="submit" class="adm-btn adm-btn-sm"
+                            style="width:100%;background:#16a34a;color:white;font-size:13px;padding:8px;"
+                            onclick="return confirm('Duyệt báo cáo này? Bài đăng sẽ bị gắn cảnh báo lừa đảo.')">
+                            ✅ Duyệt — Gắn cảnh báo
+                        </button>
+                    </form>
+                    <!-- Reject form -->
+                    <form method="POST" action="{{ url_for('admin_reject_report', report_id=r['id']) }}">
+                        <textarea name="admin_note" rows="2" placeholder="Lý do từ chối (tùy chọn)..."
+                            style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;font-size:12px;resize:none;margin-bottom:6px;box-sizing:border-box;"></textarea>
+                        <button type="submit" class="adm-btn adm-btn-sm adm-btn-danger"
+                            style="width:100%;font-size:13px;padding:8px;"
+                            onclick="return confirm('Từ chối báo cáo này?')">
+                            ❌ Từ chối
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if total_pages > 1 %}
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:20px;flex-wrap:wrap;">
+        {% if page > 1 %}
+        <a href="{{ url_for('admin_reports', status=status_filter, page=page-1) }}" class="adm-btn adm-btn-ghost adm-btn-sm">← Trước</a>
+        {% endif %}
+        <span style="padding:6px 14px;color:#94a3b8;font-size:13px;">Trang {{ page }}/{{ total_pages }}</span>
+        {% if page < total_pages %}
+        <a href="{{ url_for('admin_reports', status=status_filter, page=page+1) }}" class="adm-btn adm-btn-ghost adm-btn-sm">Sau →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div style="text-align:center;padding:50px;color:#475569;">
+        <div style="font-size:40px;margin-bottom:12px;">📭</div>
+        <div style="font-size:15px;font-weight:700;color:#64748b;">Không có báo cáo nào.</div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

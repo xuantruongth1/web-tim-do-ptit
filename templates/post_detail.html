@@ -1,0 +1,488 @@
+{% extends "base.html" %}
+{% block title %}Chi tiết bài đăng - {{ post['title'] }}{% endblock %}
+{% block content %}
+
+<section class="section-head left">
+    <h1>{{ post['title'] }}</h1>
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+        {% if post['priority'] == 3 %}
+        <span class="badge" style="background:#fce7f3; color:#db2777; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:800;">🔥 TÌM GẤP</span>
+        {% elif post['priority'] == 2 %}
+        <span class="badge" style="background:#fef3c7; color:#d97706; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:800;">⭐ ƯU TIÊN</span>
+        {% elif post['priority'] == 1 %}
+        <span class="badge" style="background:#dbeafe; color:#2563eb; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:800;">💡 NỔI BẬT</span>
+        {% endif %}
+        <span style="background: {{ '#fee2e2' if post['post_type'] == 'lost' else '#dcfce7' }};
+                     color: {{ '#b91c1c' if post['post_type'] == 'lost' else '#16a34a' }};
+                     padding:4px 12px; border-radius:999px; font-size:12px; font-weight:800;">
+            {{ 'MẤT ĐỒ' if post['post_type'] == 'lost' else 'NHẶT ĐƯỢC' }}
+        </span>
+        {% if post['status'] == 'pending_review' %}
+        <span style="background:#fef3c7; color:#92400e; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:700;">
+            ⏳ Chờ admin duyệt
+        </span>
+        {% endif %}
+    </div>
+</section>
+
+{% if session.get('role') == 'admin' %}
+<div style="background:#1e293b;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;max-width:800px;margin-left:auto;margin-right:auto;">
+    <span style="color:#94a3b8;font-size:12px;font-weight:700;margin-right:4px;">🛡️ ADMIN:</span>
+    <a href="{{ url_for('edit_post', post_id=post['id']) }}"
+       style="padding:6px 14px;border-radius:7px;background:#3b82f6;color:white;font-size:12px;font-weight:700;text-decoration:none;">✏️ Sửa bài</a>
+
+    {% if post['status'] == 'pending_review' %}
+    <form method="POST" action="{{ url_for('admin_approve_post', post_id=post['id']) }}" style="display:inline;">
+        <button type="submit" style="padding:6px 14px;border-radius:7px;background:#16a34a;color:white;font-size:12px;font-weight:700;border:none;cursor:pointer;">✅ Duyệt</button>
+    </form>
+    <form method="POST" action="{{ url_for('admin_reject_post', post_id=post['id']) }}" style="display:inline;">
+        <button type="button" style="padding:6px 14px;border-radius:7px;background:#dc2626;color:white;font-size:12px;font-weight:700;border:none;cursor:pointer;"
+            onclick="adminConfirm('Từ chối bài này?', this.closest('form'), {danger:true,icon:'❌',okLabel:'Từ chối'})">❌ Từ chối</button>
+    </form>
+    {% endif %}
+
+    {% if post['status'] == 'active' %}
+    <form method="POST" action="{{ url_for('admin_hide_post', post_id=post['id']) }}" style="display:inline;">
+        <button type="button" style="padding:6px 14px;border-radius:7px;background:#f59e0b;color:white;font-size:12px;font-weight:700;border:none;cursor:pointer;"
+            onclick="adminConfirm('Ẩn bài này?', this.closest('form'), {icon:'🙈',okLabel:'Ẩn',okColor:'#f59e0b'})">🙈 Ẩn</button>
+    </form>
+    <form method="POST" action="{{ url_for('admin_mark_resolved', post_id=post['id']) }}" style="display:inline;">
+        <button type="submit" style="padding:6px 14px;border-radius:7px;background:#0ea5e9;color:white;font-size:12px;font-weight:700;border:none;cursor:pointer;">🎉 Đã xử lý</button>
+    </form>
+    {% endif %}
+
+    {% if post['status'] in ('hidden', 'rejected') %}
+    <form method="POST" action="{{ url_for('admin_reactivate_post', post_id=post['id']) }}" style="display:inline;">
+        <button type="submit" style="padding:6px 14px;border-radius:7px;background:#7c3aed;color:white;font-size:12px;font-weight:700;border:none;cursor:pointer;">♻️ Khôi phục</button>
+    </form>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('admin_delete_post', post_id=post['id']) }}" style="display:inline;">
+        <button type="button" style="padding:6px 14px;border-radius:7px;background:#9f1239;color:white;font-size:12px;font-weight:700;border:none;cursor:pointer;"
+            onclick="adminConfirm('XÓA VĨNH VIỄN bài này?', this.closest('form'), {danger:true,icon:'🗑️',okLabel:'Xóa vĩnh viễn',sub:'Thao tác này không thể hoàn tác!'})">🗑️ Xóa</button>
+    </form>
+
+    <a href="{{ url_for('admin_posts') }}" style="margin-left:auto;color:#64748b;font-size:12px;text-decoration:none;">← Quản lý bài đăng</a>
+</div>
+{% endif %}
+
+<div class="detail-container" style="background: var(--bg-card); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto;">
+    {% if post['image'] %}
+    <div style="text-align: center; margin-bottom: 20px;">
+        <img src="{{ url_for('static', filename='uploads/' ~ post['image']) }}" alt="Ảnh bài đăng"
+             style="max-width: 100%; max-height: 400px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    </div>
+    {% endif %}
+
+    <h3 style="color: var(--primary-color); margin-bottom: 15px;">Thông tin chi tiết</h3>
+    <div class="meta-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+        <div><b>Danh mục:</b> <span>{{ post['category'] }}</span></div>
+        <div><b>Người đăng:</b> <span>{{ post['full_name'] or 'Ẩn danh' }}</span></div>
+        <div><b>Địa điểm:</b> <span>{{ post['location'] }}</span></div>
+        <div><b>Thời gian:</b> <span>{{ post['event_date'] or 'Không rõ' }}</span></div>
+        <div><b>Cơ sở:</b> <span>{{ post['campus'] or 'Không rõ' }}</span></div>
+        <div><b>Thành phố:</b> <span>{{ post['city'] or 'Không rõ' }}</span></div>
+        <div><b>Đăng lúc:</b> <span style="color:#94a3b8; font-size:13px;">{{ post['created_at']|time_ago }}</span></div>
+
+        {# Hiển thị contact có điều kiện #}
+        <div>
+            <b>Liên hệ:</b>
+            {% if post['post_type'] == 'lost' %}
+                <span style="color: #d12e2e; font-weight: 500;">{{ post['contact'] }}</span>
+            {% else %}
+                {% if contact_unlocked %}
+                    <span style="color: #16a34a; font-weight: 700; font-size: 16px;">📞 {{ post['contact'] }}</span>
+                    <span style="display:inline-block; background:#dcfce7; color:#16a34a; font-size:11px; padding:2px 8px; border-radius:999px; margin-left:6px;">Đã mở khóa</span>
+                {% else %}
+                    <span style="color: #666; font-style: italic;">[🔒 Cần xác minh để xem]</span>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    {% if post['tags'] %}
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:16px;">
+        <span style="font-size:12px;color:#94a3b8;font-weight:600;">🏷️ Tags:</span>
+        {% for tag in post['tags'].split(',') %}{% if tag.strip() %}
+        <span style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;">{{ tag.strip() }}</span>
+        {% endif %}{% endfor %}
+    </div>
+    {% endif %}
+
+    <div style="margin-bottom: 25px;">
+        <h4 style="margin-bottom: 10px;">Mô tả</h4>
+        <p style="white-space: pre-line; line-height: 1.6; color: var(--text-color);">{{ post['description'] }}</p>
+    </div>
+
+    {# Verification hint: chỉ hiện cho bài lost, hoặc cho bài found nếu là admin/owner #}
+    {% if post['verification_hint'] %}
+        {% if post['post_type'] == 'lost' or (session.get('user_id') == post['user_id']) or session.get('role') == 'admin' %}
+        <div style="background: rgba(22, 160, 133, 0.08); padding: 15px; border-left: 4px solid var(--primary-color); border-radius: 4px; margin-bottom: 25px;">
+            <h4 style="color: var(--primary-color); margin-bottom: 5px;">
+                {{ 'Thông tin xác thực (công khai)' if post['post_type'] == 'lost' else '🔒 Thông tin xác thực (chỉ bạn thấy)' }}
+            </h4>
+            <p style="margin: 0; color: #333;">{{ post['verification_hint'] }}</p>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <!-- Action buttons -->
+    <div style="text-align: center; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+        {% if not session.get('user_id') %}
+            <p style="color: #666;">Vui lòng <a href="{{ url_for('login') }}">đăng nhập</a> để thao tác.</p>
+
+        {% elif session.get('user_id') == post['user_id'] %}
+            <p style="color: #aaa; font-style: italic;">(Đây là bài viết do bạn đăng)</p>
+            {% if post['post_type'] == 'found' %}
+            <a href="{{ url_for('my_received_claims') }}"
+               class="btn ghost" style="padding: 10px 24px; margin-top: 10px;">
+                📋 Xem người yêu cầu nhận đồ ({{ post['id'] }})
+            </a>
+            {% endif %}
+
+        {% else %}
+            {% if post['post_type'] == 'found' %}
+                {% if post['status'] != 'active' %}
+                <p style="color:#94a3b8; font-style:italic;">Bài này chưa được duyệt, chưa thể xác minh.</p>
+                {% elif contact_unlocked %}
+                <div style="background:#f0fdf4; border:2px solid #bbf7d0; border-radius:12px; padding:20px; display:inline-block; min-width:280px;">
+                    <div style="font-size:14px; font-weight:700; color:#15803d; margin-bottom:8px;">✅ Bạn đã được xác minh!</div>
+                    <div style="font-size:22px; font-weight:900; color:#16a34a; letter-spacing:1px;">📞 {{ post['contact'] }}</div>
+                    <div style="font-size:12px; color:#64748b; margin-top:6px;">Liên hệ trực tiếp với người nhặt được đồ</div>
+                    {% if confirmed_claim_id %}
+                    <a href="{{ url_for('chat_view', claim_id=confirmed_claim_id) }}"
+                       style="display:block;margin-top:12px;background:#0f172a;color:white;text-align:center;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;">
+                        💬 Nhắn tin với người nhặt được
+                    </a>
+                    {% endif %}
+                </div>
+                {% else %}
+                <button id="open-claim-modal"
+                        class="btn" style="padding: 12px 30px; font-size: 16px; background-color: var(--secondary-color);">
+                    🔍 Đây là đồ của tôi
+                </button>
+                <p style="color:#94a3b8; font-size:13px; margin-top:8px;">Nhấn để mô tả và xác minh quyền sở hữu</p>
+                {% endif %}
+
+            {% elif post['post_type'] == 'lost' %}
+                <button onclick="document.getElementById('found-modal').style.display='flex';"
+                        class="btn ghost" style="padding: 12px 30px; font-size: 16px; cursor: pointer;">
+                    📦 Tôi đã nhặt được đồ này
+                </button>
+
+                <!-- Modal: Người nhặt thông báo -->
+                <div id="found-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center; backdrop-filter:blur(3px);">
+                    <div style="background:white; padding:40px 30px; border-radius:12px; max-width:400px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.2); position:relative; animation:slideIn 0.3s ease-out;">
+                        <span onclick="document.getElementById('found-modal').style.display='none';" style="position:absolute; top:15px; right:20px; font-size:28px; font-weight:bold; cursor:pointer; color:#999; line-height:1;">&times;</span>
+                        <div style="font-size:48px; margin-bottom:15px;">💖</div>
+                        <h3 style="color:#27ae60; margin-bottom:15px;">Cảm ơn nghĩa cử cao đẹp!</h3>
+                        <p style="color:#555; margin-bottom:20px; line-height:1.6;">Xin vui lòng liên hệ trực tiếp với chủ nhân qua số điện thoại:</p>
+                        <div style="background:#fdf3f2; border:2px dashed #f5b7b1; padding:15px; border-radius:8px; margin-bottom:25px;">
+                            <strong style="color:#e74c3c; font-size:26px; letter-spacing:2px;">{{ post['contact'] }}</strong>
+                        </div>
+                        <button onclick="document.getElementById('found-modal').style.display='none';" class="btn" style="background-color: var(--primary-color); padding:10px 25px; border-radius:6px;">Đóng</button>
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+{# === MODAL XÁC MINH (Đây là đồ của tôi) === #}
+{% if session.get('user_id') and session.get('user_id') != post['user_id'] and post['post_type'] == 'found' and not contact_unlocked and post['status'] == 'active' %}
+<div id="claim-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:9999; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
+    <div style="background:white; padding:36px 32px; border-radius:16px; max-width:480px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.25); position:relative; animation:slideIn 0.3s ease-out;">
+        <span onclick="document.getElementById('claim-modal').style.display='none';" style="position:absolute; top:16px; right:20px; font-size:26px; cursor:pointer; color:#999;">&times;</span>
+
+        <div style="font-size: 40px; text-align:center; margin-bottom:12px;">🔍</div>
+        <h3 style="text-align:center; color:#0f172a; margin-bottom:6px;">Xác minh đây là đồ của tôi</h3>
+        <p style="text-align:center; color:#64748b; font-size:13px; margin-bottom:20px; line-height:1.6;">
+            Nhập thông tin chỉ chủ sở hữu thật mới biết. Hệ thống sẽ chấm điểm tự động.<br>
+            <strong style="color:#ef4444;">Điểm ≥ 50/100</strong> → Liên hệ được mở ngay.
+        </p>
+
+        <form method="POST" action="{{ url_for('claim_form', found_post_id=post['id']) }}">
+            {% if my_lost_posts %}
+            <div style="margin-bottom:16px;">
+                <label style="font-weight:700; font-size:13px; color:#374151; display:block; margin-bottom:6px;">
+                    Bài đăng mất đồ của bạn <span style="color:#94a3b8; font-weight:400;">(tùy chọn — giúp tăng điểm)</span>
+                </label>
+                <select name="lost_post_id" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px; font-size:13px;">
+                    <option value="">-- Không chọn --</option>
+                    {% for lp in my_lost_posts %}
+                    <option value="{{ lp['id'] }}">{{ lp['title'][:60] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <div style="margin-bottom:20px;">
+                <label for="claim_desc" style="font-weight:700; font-size:13px; color:#374151; display:block; margin-bottom:6px;">
+                    Mô tả xác minh bảo mật <span style="color:red;">*</span>
+                </label>
+                <textarea id="claim_desc" name="claim_description" rows="5" required
+                    style="width:100%; padding:12px; border:1px solid #e2e8f0; border-radius:8px; font-size:14px; resize:vertical; line-height:1.6;"
+                    placeholder="Mô tả chi tiết: màu sắc bên trong, vật đặc biệt bên trong, ký hiệu riêng, mật khẩu điện thoại, đặc điểm nhận dạng mà chỉ chủ nhân mới biết..."></textarea>
+                <p style="font-size:12px; color:#94a3b8; margin-top:4px;">Càng chi tiết và khớp với thông tin bài đăng thì điểm càng cao.</p>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button type="submit" class="btn primary" style="flex:1; padding:12px; font-size:15px; font-weight:700;">
+                    📤 Gửi xác minh
+                </button>
+                <button type="button" onclick="document.getElementById('claim-modal').style.display='none';"
+                    class="btn ghost" style="padding:12px 20px; font-size:15px;">
+                    Hủy
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('open-claim-modal').addEventListener('click', function() {
+    document.getElementById('claim-modal').style.display = 'flex';
+});
+</script>
+{% endif %}
+
+<style>
+@keyframes slideIn {
+    from { transform: translateY(-30px); opacity: 0; }
+    to   { transform: translateY(0);     opacity: 1; }
+}
+</style>
+
+<!-- ═══════ CẢNH BÁO LỪA ĐẢO (approved reports) ═══════ -->
+{% if approved_reports %}
+<div id="scam-warning" style="max-width:800px;margin:20px auto 0;background:#fff1f2;border:2px solid #fca5a5;border-radius:14px;padding:18px 20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <span style="font-size:24px;">⚠️</span>
+        <div>
+            <div style="font-size:15px;font-weight:900;color:#b91c1c;">CẢNH BÁO LỪA ĐẢO</div>
+            <div style="font-size:12px;color:#dc2626;font-weight:600;">Bài đăng này đã bị cộng đồng báo cáo và được admin xác nhận có dấu hiệu lừa đảo. Hãy cẩn thận!</div>
+        </div>
+    </div>
+    {% for rep in approved_reports %}
+    <div style="background:white;border-radius:8px;padding:12px 14px;margin-bottom:8px;border-left:3px solid #ef4444;">
+        <div style="font-size:11px;color:#94a3b8;margin-bottom:4px;">
+            Báo cáo bởi <strong style="color:#374151;">{{ rep['reporter_name'] or 'Người dùng' }}</strong> · {{ rep['created_at'][:10] if rep['created_at'] else '' }}
+        </div>
+        <div style="font-size:13px;color:#374151;line-height:1.5;white-space:pre-wrap;">{{ rep['content'] }}</div>
+        {% if rep['admin_note'] %}
+        <div style="margin-top:6px;font-size:12px;color:#7c3aed;font-weight:600;">🛡️ Admin: {{ rep['admin_note'] }}</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- ═══════ BÁO CÁO & MODAL ═══════ -->
+{% if session.get('user_id') and session.get('user_id') != post['user_id'] and session.get('role') != 'admin' %}
+<div style="max-width:800px;margin:12px auto 0;text-align:right;">
+    {% if user_already_reported %}
+    <span style="font-size:12px;color:#94a3b8;font-style:italic;">✅ Bạn đã báo cáo bài đăng này</span>
+    {% else %}
+    <button onclick="document.getElementById('report-modal').style.display='flex';"
+        style="background:none;border:1px solid #fca5a5;color:#dc2626;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">
+        🚨 Báo cáo lừa đảo
+    </button>
+    {% endif %}
+</div>
+
+{% if not user_already_reported %}
+<div id="report-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(3px);">
+    <div style="background:white;border-radius:16px;padding:28px 26px;width:480px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,0.25);position:relative;animation:slideIn 0.3s ease-out;">
+        <button onclick="document.getElementById('report-modal').style.display='none';"
+            style="position:absolute;top:14px;right:18px;background:none;border:none;font-size:22px;cursor:pointer;color:#94a3b8;line-height:1;">×</button>
+        <div style="font-size:36px;text-align:center;margin-bottom:10px;">🚨</div>
+        <h3 style="text-align:center;color:#b91c1c;font-size:17px;margin-bottom:6px;">Báo cáo bài đăng lừa đảo</h3>
+        <p style="text-align:center;color:#64748b;font-size:13px;margin-bottom:18px;line-height:1.5;">
+            Mô tả lý do bạn cho rằng bài đăng này có dấu hiệu lừa đảo.<br>
+            Admin sẽ xem xét và xử lý trong thời gian sớm nhất.
+        </p>
+        <form method="POST" action="{{ url_for('submit_report', post_id=post['id']) }}">
+            <div style="margin-bottom:16px;">
+                <label style="font-size:13px;font-weight:700;color:#374151;display:block;margin-bottom:6px;">
+                    Nội dung báo cáo <span style="color:red;">*</span>
+                </label>
+                <textarea name="content" rows="5" required maxlength="2000"
+                    placeholder="Ví dụ: Người đăng yêu cầu chuyển tiền trước, thông tin liên hệ giả mạo, yêu cầu gặp mặt tại địa điểm lạ..."
+                    style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;resize:vertical;line-height:1.6;box-sizing:border-box;"
+                    onfocus="this.style.borderColor='#ef4444'" onblur="this.style.borderColor='#e2e8f0'"></textarea>
+                <div style="font-size:11px;color:#94a3b8;margin-top:4px;">Tối đa 2000 ký tự. Báo cáo sai sự thật có thể bị khóa tài khoản.</div>
+            </div>
+            <div style="display:flex;gap:10px;">
+                <button type="submit" style="flex:1;padding:11px;background:#dc2626;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">
+                    📤 Gửi báo cáo
+                </button>
+                <button type="button" onclick="document.getElementById('report-modal').style.display='none';"
+                    style="padding:11px 18px;background:#f1f5f9;color:#374151;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">
+                    Hủy
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+document.getElementById('report-modal').addEventListener('click', function(e){
+    if(e.target===this) this.style.display='none';
+});
+</script>
+{% endif %}
+{% endif %}
+
+<!-- ═══════ BÌNH LUẬN ═══════ -->
+<div id="comments" style="max-width:800px;margin:28px auto 0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h2 style="font-size:16px;font-weight:800;color:#0f172a;margin:0;">
+            💬 Bình luận
+            <span style="font-size:13px;font-weight:600;color:#64748b;margin-left:6px;">({{ comments|length }})</span>
+        </h2>
+    </div>
+
+    <!-- Danh sách bình luận -->
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+        {% for c in comments %}
+        <div id="comment-{{ c.id }}" style="background:white;border:1px solid #e5e7eb;border-radius:12px;padding:14px 16px;position:relative;">
+            <!-- Header -->
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                {% if c.avatar %}
+                <img src="{{ url_for('static', filename='uploads/avatars/' ~ c.avatar) }}"
+                     style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;" alt="avatar">
+                {% else %}
+                <div style="width:34px;height:34px;border-radius:50%;background:{{ '#dbeafe' if c.role=='admin' else '#f1f5f9' }};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:{{ '#1d4ed8' if c.role=='admin' else '#64748b' }};flex-shrink:0;">
+                    {{ (c.full_name or c.username or '?')[0]|upper }}
+                </div>
+                {% endif %}
+                <div>
+                    <span style="font-weight:700;font-size:13px;color:#0f172a;">{{ c.full_name or c.username }}</span>
+                    {% if c.role == 'admin' %}
+                    <span style="background:#dbeafe;color:#1d4ed8;font-size:10px;font-weight:800;padding:1px 6px;border-radius:4px;margin-left:5px;">ADMIN</span>
+                    {% endif %}
+                    <div style="font-size:11px;color:#94a3b8;">{{ c.created_at[:16] }}</div>
+                </div>
+                <!-- Action buttons -->
+                {% if session.get('user_id') == c.user_id or session.get('role') == 'admin' %}
+                <div style="margin-left:auto;display:flex;gap:6px;">
+                    <button onclick="openEditComment({{ c.id }}, {{ c.content|tojson }})"
+                        style="padding:4px 10px;border-radius:6px;border:1px solid #e2e8f0;background:white;font-size:11px;font-weight:600;cursor:pointer;color:#374151;">✏️ Sửa</button>
+                    <form method="POST" action="{{ url_for('delete_comment', comment_id=c.id) }}" style="display:inline;">
+                        <button type="button" style="padding:4px 10px;border-radius:6px;border:1px solid #fecaca;background:#fff1f2;font-size:11px;font-weight:600;cursor:pointer;color:#dc2626;"
+                            onclick="adminConfirm('Xóa bình luận này?', this.closest('form'), {danger:true,icon:'🗑️',okLabel:'Xóa'})">🗑️ Xóa</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+            <!-- Nội dung -->
+            <div id="comment-text-{{ c.id }}" style="font-size:14px;color:#374151;line-height:1.6;white-space:pre-wrap;">{{ c.content }}</div>
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:30px;color:#94a3b8;background:white;border:1px dashed #e5e7eb;border-radius:12px;">
+            Chưa có bình luận nào. Hãy là người đầu tiên!
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Form thêm bình luận -->
+    {% if session.get('user_id') %}
+    <div style="background:white;border:1px solid #e5e7eb;border-radius:12px;padding:16px;">
+        <div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:10px;">✍️ Viết bình luận</div>
+        <form method="POST" action="{{ url_for('add_comment', post_id=post['id']) }}">
+            <textarea name="content" rows="3" maxlength="1000" required
+                placeholder="Nhập bình luận của bạn..."
+                style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;resize:vertical;line-height:1.6;outline:none;box-sizing:border-box;"
+                onfocus="this.style.borderColor='#16a34a'" onblur="this.style.borderColor='#e2e8f0'"></textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+                <button type="submit" class="btn primary" style="padding:8px 20px;font-size:13px;">💬 Gửi bình luận</button>
+            </div>
+        </form>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:16px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;color:#64748b;font-size:13px;">
+        <a href="{{ url_for('login') }}" style="color:#16a34a;font-weight:700;">Đăng nhập</a> để viết bình luận.
+    </div>
+    {% endif %}
+</div>
+
+<!-- Edit comment modal -->
+<div id="edit-comment-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:99990;align-items:center;justify-content:center;backdrop-filter:blur(3px);">
+    <div style="background:white;border-radius:16px;padding:24px;width:500px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <h3 style="font-size:15px;font-weight:800;color:#0f172a;margin:0;">✏️ Sửa bình luận</h3>
+            <button onclick="closeEditComment()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#94a3b8;line-height:1;">×</button>
+        </div>
+        <form id="edit-comment-form" method="POST">
+            <textarea id="edit-comment-content" name="content" rows="4" maxlength="1000" required
+                style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;resize:vertical;line-height:1.6;box-sizing:border-box;"></textarea>
+            <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px;">
+                <button type="button" onclick="closeEditComment()" style="padding:9px 20px;border-radius:8px;border:1.5px solid #e2e8f0;background:white;font-size:13px;font-weight:700;cursor:pointer;color:#475569;">Hủy</button>
+                <button type="submit" class="btn primary" style="padding:9px 20px;font-size:13px;">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openEditComment(id, content) {
+    document.getElementById('edit-comment-form').action = '/comment/' + id + '/edit';
+    document.getElementById('edit-comment-content').value = content;
+    document.getElementById('edit-comment-overlay').style.display = 'flex';
+    setTimeout(function(){ document.getElementById('edit-comment-content').focus(); }, 100);
+}
+function closeEditComment() {
+    document.getElementById('edit-comment-overlay').style.display = 'none';
+}
+document.getElementById('edit-comment-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeEditComment();
+});
+</script>
+
+<!-- ═══════ BÀI ĐĂNG LIÊN QUAN ═══════ -->
+{% if related_posts %}
+<div style="max-width:800px;margin:28px auto 0;">
+    <div class="section-title-bar" style="margin-bottom:14px;">
+        <h2 style="font-size:15px;">
+            🔗 Bài đăng liên quan
+            <span style="font-size:12px;font-weight:400;color:#6b7280;">
+                — cùng danh mục "{{ post['category'] }}"
+            </span>
+        </h2>
+        <a href="{{ url_for('search', category=post['category']) }}" style="font-size:12px;color:#16a34a;">Xem thêm →</a>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;">
+        {% for r in related_posts %}
+        <a href="{{ url_for('post_detail', post_id=r['id']) }}"
+           style="background:white;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden;text-decoration:none;color:inherit;display:flex;flex-direction:column;transition:transform 0.2s,box-shadow 0.2s;"
+           onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 20px rgba(0,0,0,0.1)'"
+           onmouseout="this.style.transform='';this.style.boxShadow=''">
+
+            {% if r['image'] %}
+                <img src="{{ url_for('static', filename='uploads/' ~ r['image']) }}"
+                     style="width:100%;height:110px;object-fit:cover;display:block;">
+            {% else %}
+                <div style="height:110px;background:linear-gradient(135deg,#e0f2fe,#f0fdf4);display:flex;align-items:center;justify-content:center;font-size:32px;">
+                    {% if r['post_type'] == 'lost' %}🔍{% else %}📦{% endif %}
+                </div>
+            {% endif %}
+
+            <div style="padding:10px 11px 12px;flex:1;display:flex;flex-direction:column;">
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;
+                            color:{% if r['post_type'] == 'lost' %}#ef4444{% else %}#16a34a{% endif %};">
+                    {{ 'MẤT ĐỒ' if r['post_type'] == 'lost' else 'NHẶT ĐƯỢC' }}
+                </div>
+                <div style="font-size:12px;font-weight:700;color:#0f172a;line-height:1.4;margin-bottom:5px;
+                            display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+                    {{ r['title'] }}
+                </div>
+                <div style="font-size:11px;color:#94a3b8;margin-top:auto;">
+                    📍 {{ r['city'] or r['location'] or 'Không rõ' }} · {{ r['created_at'] | time_ago }}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

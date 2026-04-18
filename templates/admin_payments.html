@@ -1,0 +1,158 @@
+{% extends "base_admin.html" %}
+{% block admin_title %}Thanh toán{% endblock %}
+
+{% block admin_content %}
+<div class="adm-page-head">
+    <h1>💳 Quản lý Thanh toán VIP</h1>
+    <p>Xác nhận chuyển khoản, từ chối, hoàn tiền và theo dõi lịch sử giao dịch.</p>
+</div>
+
+<!-- Tabs -->
+<div class="adm-tabs" style="margin-bottom:16px;">
+    <a href="{{ url_for('admin_payments') }}" class="adm-tab {{ 'active' if not status_filter }}">
+        Tất cả <span class="count">{{ counts.all }}</span>
+    </a>
+    <a href="{{ url_for('admin_payments', status='pending') }}" class="adm-tab {{ 'active' if status_filter=='pending' }}">
+        ⏳ Chờ <span class="count">{{ counts.pending }}</span>
+    </a>
+    <a href="{{ url_for('admin_payments', status='paid') }}" class="adm-tab {{ 'active' if status_filter=='paid' }}">
+        ✅ Đã xác nhận <span class="count">{{ counts.paid }}</span>
+    </a>
+    <a href="{{ url_for('admin_payments', status='rejected') }}" class="adm-tab {{ 'active' if status_filter=='rejected' }}">
+        ❌ Từ chối <span class="count">{{ counts.rejected }}</span>
+    </a>
+</div>
+
+<div class="adm-card">
+<div class="adm-table-wrap">
+    <table class="adm-table">
+        <thead>
+            <tr>
+                <th>ID</th><th>Người dùng</th><th>Bài đăng</th>
+                <th>Gói</th><th>Số tiền</th><th>Nội dung CK</th>
+                <th>Ảnh CK</th><th>Trạng thái</th><th>Thời gian</th>
+                <th style="min-width:180px;">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in payments %}
+            <tr>
+                <td style="color:#94a3b8;font-size:12px;">#{{ p["id"] }}</td>
+                <td>
+                    <div style="font-weight:700;font-size:13px;">{{ p["full_name"] or "Không rõ" }}</div>
+                    <div style="font-size:11px;color:#64748b;">@{{ p["username"] or "" }}</div>
+                </td>
+                <td>
+                    {% if p['title'] %}
+                    <a href="{{ url_for('post_detail', post_id=p['post_id']) }}" target="_blank" style="color:#2563eb;font-weight:600;font-size:13px;">
+                        {{ p["title"][:35] }}{% if p['title']|length > 35 %}…{% endif %}
+                    </a>
+                    {% else %}
+                    <span style="color:#94a3b8;font-size:12px;">Bài đã bị xóa</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="adm-badge adm-badge-info">{{ p["package_name"] }}</span>
+                </td>
+                <td style="font-weight:700;color:#0f172a;">{{ "{:,.0f}".format(p['amount']) }}đ</td>
+                <td>
+                    <span style="font-weight:700;color:#dc2626;font-size:12px;background:#fee2e2;padding:2px 7px;border-radius:5px;">
+                        {{ p["transfer_content"] }}
+                    </span>
+                </td>
+                <td style="text-align:center;">
+                    {% if p["payment_proof"] %}
+                    <a href="{{ url_for('static', filename='uploads/' + p['payment_proof']) }}" target="_blank">
+                        <img src="{{ url_for('static', filename='uploads/' + p['payment_proof']) }}"
+                            style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid #e2e8f0;cursor:pointer;">
+                    </a>
+                    {% else %}
+                    <span style="font-size:11px;color:#94a3b8;">Không có</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if p['status'] == 'pending' %}
+                        <span class="adm-badge adm-badge-pending">⏳ Chờ</span>
+                    {% elif p['status'] == 'paid' %}
+                        <div>
+                            <span class="adm-badge adm-badge-paid">✅ Đã thanh toán</span>
+                            {% if p['refunded'] %}
+                            <div style="margin-top:3px;"><span class="adm-badge adm-badge-warning">♻️ Đã hoàn tiền</span></div>
+                            {% endif %}
+                        </div>
+                        {% if p['confirmed_at'] %}
+                        <div style="font-size:10px;color:#64748b;margin-top:2px;">{{ p["confirmed_at"][:16] }}</div>
+                        {% endif %}
+                    {% elif p['status'] == 'rejected' %}
+                        <span class="adm-badge adm-badge-rejected">❌ Từ chối</span>
+                    {% else %}
+                        <span style="color:#64748b;font-size:12px;">{{ p["status"] }}</span>
+                    {% endif %}
+                </td>
+                <td style="font-size:11px;color:#64748b;">{{ p["created_at"][:16] }}</td>
+                <td>
+                    <div style="display:flex;flex-direction:column;gap:4px;">
+                        {% if p['status'] == 'pending' %}
+                        <div style="display:flex;gap:4px;">
+                            <form method="POST" action="{{ url_for('confirm_payment', payment_id=p['id']) }}" style="display:inline;flex:1;">
+                                <button type="button" class="adm-btn adm-btn-sm adm-btn-success" style="width:100%;"
+                                    onclick="admConfirm('Xác nhận thanh toán #{{ p.id }}?', this.closest('form'), {icon:'✅',okLabel:'Xác nhận',okColor:'#16a34a'})">✅ Xác nhận</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('reject_payment', payment_id=p['id']) }}" style="display:inline;flex:1;">
+                                <button type="button" class="adm-btn adm-btn-sm adm-btn-danger" style="width:100%;"
+                                    onclick="admConfirm('Từ chối thanh toán #{{ p.id }}?', this.closest('form'), {danger:true,icon:'❌',okLabel:'Từ chối'})">❌ Từ chối</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                        {% if p['status'] == 'paid' and not p['refunded'] %}
+                        <button type="button" class="adm-btn adm-btn-sm adm-btn-warning"
+                            onclick="openRefundModal({{ p['id'] }})">♻️ Hoàn tiền</button>
+                        {% endif %}
+                        {% if p['title'] %}
+                        <a href="{{ url_for('post_detail', post_id=p['post_id']) }}" class="adm-btn adm-btn-sm adm-btn-ghost" target="_blank">🔗 Xem bài</a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="10" style="text-align:center;color:#94a3b8;padding:40px;">
+                    {% if status_filter %}Không có giao dịch với trạng thái này.{% else %}Chưa có yêu cầu thanh toán nào.{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</div>
+
+<!-- Refund Modal -->
+<div id="refundModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;padding:24px;width:360px;max-width:95vw;">
+        <h3 style="font-size:15px;font-weight:800;margin-bottom:14px;">♻️ Hoàn tiền — Giao dịch #<span id="refundPayId"></span></h3>
+        <form id="refundForm" method="POST">
+            <div class="adm-form-group">
+                <label class="adm-form-label">Lý do hoàn tiền</label>
+                <input type="text" name="refund_note" class="adm-form-input" placeholder="Nhập lý do..." required>
+            </div>
+            <div style="display:flex;gap:8px;">
+                <button type="submit" class="adm-btn adm-btn-warning" style="flex:1;">Xác nhận hoàn tiền</button>
+                <button type="button" class="adm-btn adm-btn-ghost" onclick="document.getElementById('refundModalOverlay').style.display='none'">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block admin_extra_js %}
+<script>
+function openRefundModal(payId) {
+    document.getElementById('refundPayId').textContent = payId;
+    document.getElementById('refundForm').action = '/admin/payments/' + payId + '/refund';
+    document.getElementById('refundModalOverlay').style.display = 'flex';
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') document.getElementById('refundModalOverlay').style.display = 'none';
+});
+</script>
+{% endblock %}
+{% endblock %}

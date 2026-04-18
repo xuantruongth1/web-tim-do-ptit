@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Bài của tôi{% endblock %}
+{% block content %}
+<section class="section-head left">
+    <h1>Bài của tôi</h1>
+    <p>Quản lý các bài đăng, theo dõi trạng thái và xem yêu cầu nhận đồ.</p>
+</section>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tiêu đề</th>
+                <th>Loại</th>
+                <th>Gói</th>
+                <th>Trạng thái</th>
+                <th>Ưu tiên</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in posts %}
+            <tr>
+                <td>#{{ p['id'] }}</td>
+                <td>
+                    <a href="{{ url_for('post_detail', post_id=p['id']) }}" style="color:#16a34a; font-weight:600;">
+                        {{ p['title'][:40] }}{% if p['title']|length > 40 %}…{% endif %}
+                    </a>
+                </td>
+                <td>
+                    <span style="font-weight:700; font-size:12px; color:{{ '#ef4444' if p['post_type'] == 'lost' else '#16a34a' }}">
+                        {{ 'MẤT ĐỒ' if p['post_type'] == 'lost' else 'NHẶT ĐƯỢC' }}
+                    </span>
+                </td>
+                <td>
+                    {% if p['package_key'] %}
+                    <span style="background:#fef3c7; color:#92400e; padding:2px 8px; border-radius:6px; font-size:11px; font-weight:700;">
+                        {{ p['package_key']|upper }}
+                    </span>
+                    {% else %}
+                    <span style="color:#94a3b8; font-size:12px;">Thường</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if p['status'] == 'pending_review' %}
+                    <span style="background:#fef3c7; color:#92400e; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:700;">⏳ Chờ duyệt</span>
+                    {% elif p['status'] == 'active' %}
+                    <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:700;">✅ Đang hiển thị</span>
+                    {% elif p['status'] == 'rejected' %}
+                    <span style="background:#fee2e2; color:#b91c1c; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:700;">❌ Bị từ chối</span>
+                    {% elif p['status'] == 'resolved' %}
+                    <span style="background:#dbeafe; color:#1d4ed8; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:700;">🔒 Đã xử lý</span>
+                    {% elif p['status'] == 'hidden' %}
+                    <span style="background:#f1f5f9; color:#64748b; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:700;">👁 Đã ẩn</span>
+                    {% else %}
+                    <span style="color:#94a3b8; font-size:12px;">{{ p['status'] }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if p['priority'] == 3 %}
+                    <span style="color:#db2777; font-weight:700; font-size:12px;">🔥 TÌM GẤP</span>
+                    {% elif p['priority'] == 2 %}
+                    <span style="color:#d97706; font-weight:700; font-size:12px;">⭐ ƯU TIÊN</span>
+                    {% elif p['priority'] == 1 %}
+                    <span style="color:#2563eb; font-weight:700; font-size:12px;">💡 NỔI BẬT</span>
+                    {% else %}
+                    <span style="color:#94a3b8; font-size:12px;">—</span>
+                    {% endif %}
+                </td>
+                <td class="actions">
+                    {% if p['post_type'] == 'found' %}
+                    <a class="mini-btn primary" href="{{ url_for('my_received_claims') }}" style="font-size:11px;">
+                        📋 Yêu cầu nhận
+                    </a>
+                    {% endif %}
+                    {% if p['status'] not in ['resolved', 'rejected'] %}
+                    <a class="mini-btn info" href="{{ url_for('edit_post', post_id=p['id']) }}">✏️ Sửa</a>
+                    <form method="POST" action="{{ url_for('resolve_post', post_id=p['id']) }}" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="button" class="mini-btn success"
+                            onclick="adminConfirm('Đánh dấu đã xử lý?', this.closest('form'), {icon:'✓',okLabel:'Đã xử lý',okColor:'#16a34a'})">
+                            ✓ Đã xử lý
+                        </button>
+                    </form>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('delete_post', post_id=p['id']) }}" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="button" class="mini-btn danger"
+                            onclick="adminConfirm('Xóa bài này?', this.closest('form'), {danger:true,icon:'🗑️',okLabel:'Xóa',sub:'Bài đăng sẽ bị xóa vĩnh viễn.'})">
+                            Xóa
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" style="text-align:center; color:#94a3b8; padding:30px;">Bạn chưa có bài đăng nào.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

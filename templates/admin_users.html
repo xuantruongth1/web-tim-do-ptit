@@ -1,0 +1,117 @@
+{% extends "base_admin.html" %}
+{% block admin_title %}Người dùng{% endblock %}
+
+{% block admin_content %}
+<div class="adm-page-head">
+    <h1>👥 Quản lý Người dùng</h1>
+    <p>Xem danh sách tài khoản, phân quyền, khóa/mở khóa và xem hồ sơ chi tiết.</p>
+</div>
+
+<div class="adm-stats" style="margin-bottom:24px;">
+    <div class="adm-stat-card" style="border-left-color:#3b82f6;">
+        <h3>{{ users|length }}</h3><p>👥 Tổng tài khoản</p>
+    </div>
+    <div class="adm-stat-card" style="border-left-color:#7c3aed;">
+        <h3>{{ users|selectattr("role","equalto","admin")|list|length }}</h3><p>🛡️ Quản trị viên</p>
+    </div>
+    <div class="adm-stat-card" style="border-left-color:#16a34a;">
+        <h3>{{ users|selectattr("role","equalto","user")|list|length }}</h3><p>👤 Người dùng thường</p>
+    </div>
+    <div class="adm-stat-card" style="border-left-color:#f59e0b;">
+        <h3>{{ users|sum(attribute="post_count") }}</h3><p>📝 Tổng bài đăng</p>
+    </div>
+</div>
+
+<div class="adm-card">
+<div class="adm-table-wrap">
+    <table class="adm-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Họ tên</th>
+                <th>Username</th>
+                <th>Quyền</th>
+                <th>Trạng thái</th>
+                <th>Bài đăng</th>
+                <th>Claims</th>
+                <th>Ngày tham gia</th>
+                <th style="min-width:220px;">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td><span style="color:#94a3b8;font-size:12px;">#{{ u["id"] }}</span></td>
+                <td>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="width:32px;height:32px;border-radius:50%;background:{{ '#dbeafe' if u['role']=='admin' else '#f1f5f9' }};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:{{ '#1d4ed8' if u['role']=='admin' else '#64748b' }};flex-shrink:0;">
+                            {{ (u["full_name"] or u["username"] or "?")[0]|upper }}
+                        </div>
+                        <span style="font-weight:600;color:#0f172a;font-size:13px;">{{ u["full_name"] or "—" }}</span>
+                    </div>
+                </td>
+                <td style="font-size:13px;color:#374151;">@{{ u["username"] }}</td>
+                <td>
+                    {% if u['role'] == 'admin' %}
+                    <span class="adm-badge adm-badge-info">🛡️ Admin</span>
+                    {% elif u['role'] == 'moderator' %}
+                    <span class="adm-badge adm-badge-warning">⚖️ Mod</span>
+                    {% else %}
+                    <span class="adm-badge adm-badge-hidden">👤 User</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if u['is_locked'] %}
+                    <span class="adm-badge adm-badge-rejected">🔒 Đã khóa</span>
+                    {% else %}
+                    <span class="adm-badge adm-badge-active">✅ Hoạt động</span>
+                    {% endif %}
+                </td>
+                <td style="text-align:center;">
+                    <span style="font-weight:700;color:{{ '#16a34a' if u['post_count'] > 0 else '#94a3b8' }};">{{ u["post_count"] }}</span>
+                </td>
+                <td style="text-align:center;">
+                    <span style="font-weight:700;color:{{ '#7c3aed' if u['claim_count'] > 0 else '#94a3b8' }};">{{ u["claim_count"] }}</span>
+                </td>
+                <td style="font-size:12px;color:#64748b;">{{ u["created_at"][:10] if u["created_at"] else "—" }}</td>
+                <td>
+                    <div style="display:flex;flex-direction:column;gap:4px;">
+                        <a href="{{ url_for('admin_user_profile', user_id=u['id']) }}" class="adm-btn adm-btn-sm adm-btn-ghost" style="width:100%;text-align:center;">👤 Xem hồ sơ</a>
+                        {% if u['id'] != session.get('user_id') %}
+                        <div style="display:flex;gap:4px;">
+                            <form method="POST" action="{{ url_for('toggle_admin', user_id=u['id']) }}" style="flex:1;">
+                                {% if u['role'] == 'admin' %}
+                                <button type="button" class="adm-btn adm-btn-sm adm-btn-ghost" style="width:100%;"
+                                    onclick="admConfirm('Bỏ quyền Admin của @{{ u.username }}?', this.closest('form'), {danger:true,icon:'🔽',okLabel:'Bỏ Admin'})">🔽 Bỏ Admin</button>
+                                {% else %}
+                                <button type="button" class="adm-btn adm-btn-sm adm-btn-primary" style="width:100%;"
+                                    onclick="admConfirm('Cấp quyền Admin cho @{{ u.username }}?', this.closest('form'), {icon:'🛡️',okLabel:'Cấp quyền',okColor:'#1d4ed8'})">🔼 Admin</button>
+                                {% endif %}
+                            </form>
+                            <form method="POST" action="{{ url_for('admin_lock_user', user_id=u['id']) }}" style="flex:1;">
+                                {% if u['is_locked'] %}
+                                <button type="submit" class="adm-btn adm-btn-sm adm-btn-success" style="width:100%;">🔓 Mở</button>
+                                {% else %}
+                                <button type="button" class="adm-btn adm-btn-sm adm-btn-warning" style="width:100%;"
+                                    onclick="admConfirm('Khóa tài khoản @{{ u.username }}?', this.closest('form'), {danger:true,icon:'🔒',okLabel:'Khóa',sub:'Tài khoản sẽ không thể đăng nhập.'})">🔒 Khóa</button>
+                                {% endif %}
+                            </form>
+                        </div>
+                        <form method="POST" action="{{ url_for('admin_delete_user', user_id=u['id']) }}">
+                            <button type="button" class="adm-btn adm-btn-sm adm-btn-danger" style="width:100%;"
+                                onclick="admConfirm('Xóa vĩnh viễn tài khoản @{{ u.username }}?', this.closest('form'), {danger:true,icon:'🗑️',okLabel:'Xóa',sub:'Xóa toàn bộ dữ liệu của user này. Không thể hoàn tác!'})">🗑️ Xóa</button>
+                        </form>
+                        {% else %}
+                        <span style="font-size:11px;color:#94a3b8;font-style:italic;text-align:center;">Tài khoản của bạn</span>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="9" style="text-align:center;color:#94a3b8;padding:40px;">Chưa có người dùng nào.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</div>
+{% endblock %}

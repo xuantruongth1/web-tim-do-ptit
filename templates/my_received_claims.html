@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Người yêu cầu nhận đồ của tôi{% endblock %}
+{% block content %}
+<section class="section-head left">
+    <h1>📋 Người yêu cầu nhận đồ của tôi</h1>
+    <p>Danh sách những người đã gửi xác minh cho các bài nhặt được đồ do bạn đăng.</p>
+</section>
+
+<style>
+.claim-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    transition: box-shadow 0.2s;
+}
+.claim-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.score-bar-wrap { background: #f1f5f9; border-radius: 999px; height: 8px; margin: 8px 0 4px; overflow: hidden; }
+.score-bar { height: 8px; border-radius: 999px; transition: width 0.5s; }
+.claim-status {
+    display: inline-block; padding: 3px 12px; border-radius: 999px;
+    font-size: 12px; font-weight: 700;
+}
+.s-matched, .s-owner_confirmed { background: #dcfce7; color: #16a34a; }
+.s-low_match, .s-pending         { background: #fef3c7; color: #92400e; }
+.s-rejected                       { background: #fee2e2; color: #b91c1c; }
+</style>
+
+{% if not claims %}
+<div style="text-align:center; padding: 60px 20px; color: #94a3b8;">
+    <div style="font-size:56px; margin-bottom:16px;">📭</div>
+    <h3 style="font-weight:700; color:#475569; margin-bottom:8px;">Chưa có ai gửi yêu cầu nhận đồ</h3>
+    <p style="font-size:14px;">Khi ai đó bấm "Đây là đồ của tôi" trên bài nhặt được của bạn, yêu cầu sẽ xuất hiện tại đây.</p>
+    <a href="{{ url_for('my_posts') }}" class="btn ghost" style="margin-top:16px; display:inline-block;">Quản lý bài đăng</a>
+</div>
+{% else %}
+
+<div style="max-width: 800px; margin: 0 auto;">
+    {% for c in claims %}
+    {% set score = c['ai_score'] %}
+    {% set score_color = '#16a34a' if score >= 50 else ('#f59e0b' if score >= 30 else '#ef4444') %}
+    <div class="claim-card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+            <div>
+                <div style="font-size:13px; color:#94a3b8; margin-bottom:4px;">
+                    Bài nhặt được: <a href="{{ url_for('post_detail', post_id=c['found_id']) }}"
+                        style="color:#16a34a; font-weight:700;">{{ c['found_title'] }}</a>
+                </div>
+                <div style="font-size:15px; font-weight:700; color:#0f172a;">
+                    👤 {{ c['claimer_name'] }}
+                    <span style="font-size:13px; color:#94a3b8; font-weight:400;">({{ c['claimer_username'] }})</span>
+                </div>
+                {% if c['lost_title'] %}
+                <div style="font-size:12px; color:#64748b; margin-top:4px;">
+                    Tham chiếu bài mất: <em>{{ c['lost_title'] }}</em>
+                </div>
+                {% endif %}
+            </div>
+
+            <div style="text-align:right;">
+                <span class="claim-status s-{{ c['status'] }}">
+                    {% if c['status'] == 'matched' %}✅ Khớp cao
+                    {% elif c['status'] == 'owner_confirmed' %}🎉 Đã xác nhận
+                    {% elif c['status'] == 'low_match' %}⚠️ Điểm thấp
+                    {% elif c['status'] == 'pending' %}⏳ Chờ xử lý
+                    {% elif c['status'] == 'rejected' %}❌ Đã từ chối
+                    {% else %}{{ c['status'] }}{% endif %}
+                </span>
+                <div style="font-size:11px; color:#94a3b8; margin-top:4px;">{{ c['created_at'][:16] if c['created_at'] else '' }}</div>
+            </div>
+        </div>
+
+        <!-- Điểm AI -->
+        <div style="margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <span style="font-size:13px; font-weight:600; color:#374151;">Điểm xác minh AI</span>
+                <span style="font-size:18px; font-weight:900; color:{{ score_color }};">{{ score }}<span style="font-size:13px; font-weight:400; color:#94a3b8;">/100</span></span>
+            </div>
+            <div class="score-bar-wrap">
+                <div class="score-bar" style="width:{{ score }}%; background:{{ score_color }};"></div>
+            </div>
+            <div style="font-size:12px; color:{{ score_color }};">
+                {% if score >= 50 %}Khớp đủ — liên hệ đã được mở khóa tự động
+                {% elif score >= 30 %}Khớp một phần — cần bạn xác nhận thủ công
+                {% else %}Điểm thấp — có thể không phải chủ nhân{% endif %}
+            </div>
+        </div>
+
+        <!-- Nội dung xác minh -->
+        <div style="background:#f8fafc; border-radius:8px; padding:12px 14px; margin-bottom:16px; font-size:14px; color:#374151; line-height:1.7; border-left:3px solid #e2e8f0;">
+            <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-bottom:4px; text-transform:uppercase;">Nội dung xác minh</div>
+            {{ c['claim_description'] or '(Không có mô tả)' }}
+        </div>
+
+        <!-- Actions -->
+        {% if c['status'] not in ['owner_confirmed', 'rejected'] %}
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <form method="POST" action="{{ url_for('confirm_claim_owner', claim_id=c['id']) }}" style="flex:1;">
+                <button type="button"
+                    onclick="adminConfirm('Xác nhận đây là chủ đúng?', this.closest('form'), {icon:'✅',okLabel:'Xác nhận',okColor:'#16a34a',sub:'Người này sẽ thấy số liên hệ của bạn.'})"
+                    class="btn primary" style="width:100%; padding:10px; font-weight:700;">
+                    ✅ Xác nhận đúng chủ
+                </button>
+            </form>
+            <form method="POST" action="{{ url_for('reject_claim_owner', claim_id=c['id']) }}" style="flex:1;">
+                <button type="button"
+                    onclick="adminConfirm('Từ chối yêu cầu này?', this.closest('form'), {danger:true,icon:'❌',okLabel:'Từ chối'})"
+                    class="btn ghost" style="width:100%; padding:10px; font-weight:700; color:#ef4444; border-color:#fca5a5;">
+                    ❌ Từ chối
+                </button>
+            </form>
+        </div>
+        {% elif c['status'] == 'owner_confirmed' %}
+        <div style="background:#f0fdf4; border-radius:8px; padding:12px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+            <div style="color:#16a34a; font-weight:700; font-size:13px;">🎉 Đã xác nhận — người mất đồ hiện có thể xem số liên hệ của bạn</div>
+            <a href="{{ url_for('chat_view', claim_id=c['id']) }}" class="btn primary" style="padding:8px 16px;font-size:13px;white-space:nowrap;">
+                💬 Nhắn tin
+            </a>
+        </div>
+        {% elif c['status'] == 'rejected' %}
+        <div style="background:#fef2f2; border-radius:8px; padding:12px; text-align:center; color:#ef4444; font-size:13px;">
+            Đã từ chối yêu cầu này.
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

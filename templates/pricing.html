@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+{% block title %}Gói dịch vụ{% endblock %}
+
+{% block content %}
+<div class="pricing-switch">
+    <button type="button" class="switch-btn active" id="btn-bang-gia" onclick="showTab('bang-gia')">
+        🎯 Bảng Giá
+    </button>
+    <button type="button" class="switch-btn" id="btn-so-sanh" onclick="showTab('so-sanh')">
+        📊 So Sánh Chi Tiết
+    </button>
+</div>
+
+<section id="bang-gia" class="tab-section">
+    <section class="section-head">
+        <h1>Chọn gói dịch vụ phù hợp</h1>
+        <p>Từ gói miễn phí cho đến gói VIP với hỗ trợ chuyên viên. Mỗi gói được thiết kế để tối ưu hóa khả năng tìm thấy đồ thất lạc của bạn.</p>
+</section>
+
+<div class="pricing-grid">   <!-- THÊM DÒNG NÀY -->
+
+    <div class="price-card standard">
+    <div class="card-top card-top-gray">
+        <h3>Tin Thường</h3>
+        <p>Đăng tin để mọi người biết bạn đang tìm</p>
+    </div>
+    <div class="card-body">
+        <p class="price">Miễn phí</p>
+        <ul class="feature-list">
+            <li>Tin cần chờ admin duyệt trước khi hiển thị</li>
+            <li>Hiển thị phía sau các tin được hỗ trợ ưu tiên</li>
+            <li>Bạn tự theo dõi – chưa có hệ thống hỗ trợ lan tỏa thêm</li>
+        </ul>
+
+        <a href="{{ url_for('create_post') }}" class="pricing-btn pricing-btn-dark">
+            Bắt đầu miễn phí <span>→</span>
+        </a>
+
+        <p class="compare-link">
+            <a href="javascript:void(0)" onclick="showTab('so-sanh')">So sánh với gói khác →</a>
+        </p>
+    </div>
+</div>
+
+        <div class="price-card highlight">
+    <div class="card-top card-top-blue">
+        <h3>Nổi Bật</h3>
+        <p>Tin hiển thị ngay, ghim nổi bật và lan tỏa đến nhiều người hơn</p>
+    </div>
+    <div class="card-body">
+        <p class="price">{{ "{:,}".format(packages['goi_1']['price']) }} đ</p>
+        <p class="sub-price">Top đề xuất trong {{ packages['goi_1']['days'] }} ngày</p>
+
+        <ul class="feature-list">
+            <li>Tin được ưu tiên hiển thị sau khi admin duyệt — xếp trước tin thường</li>
+            <li>Chia sẻ tin lên fanpage và 10+ hội nhóm tìm đồ</li>
+            <li>Ưu tiên hiển thị trong danh sách – xếp trên các tin thường</li>
+            <li>Hỗ trợ chỉnh sửa tin đăng để tối ưu bài đăng</li>
+            <li>Ghim nổi bật 1 tuần với nhãn "Nổi Bật" – thu hút sự chú ý</li>
+            <li>Hệ thống tự động thông báo nếu phát hiện thông tin có thể liên quan</li>
+        </ul>
+
+        <a href="{{ url_for('create_post') }}?package=goi_1" class="pricing-btn pricing-btn-blue">
+            Chọn gói này <span>→</span>
+        </a>
+
+        <p class="compare-link">
+            <a href="javascript:void(0)" onclick="showTab('so-sanh')">So sánh với gói khác →</a>
+        </p>
+    </div>
+</div>
+
+        <div class="price-card priority">
+    <div class="card-badge badge-green">PHỔ BIẾN</div>
+    <div class="card-top card-top-orange">
+        <h3>Ưu Tiên</h3>
+        <p>Thông tin được lan tỏa rộng hơn, theo dõi liên tục và hỗ trợ tối ưu nội dung</p>
+    </div>
+    <div class="card-body">
+        <p class="price">{{ "{:,}".format(packages['goi_2']['price']) }} đ</p>
+        <p class="sub-price">Top đề xuất trong {{ packages['goi_2']['days'] }} ngày</p>
+
+        <ul class="feature-list">
+            <li>Bao gồm tất cả quyền lợi của gói Nổi Bật</li>
+            <li>Chia sẻ tin lên fanpage và 20+ hội nhóm tìm đồ – phủ sóng rộng hơn</li>
+            <li>Hệ thống tự động rà soát và đối chiếu với các tin mới 24/7</li>
+            <li>Cam kết gia hạn thêm 2 ngày miễn phí nếu hết hạn mà chưa có phản hồi</li>
+            <li>Nhãn "Ưu Tiên" – nổi bật hơn trong danh sách đề xuất</li>
+            <li>Thông báo qua email và push notification khi có thông tin liên quan</li>
+            <li>Hỗ trợ chỉnh sửa và tối ưu nội dung tin để dễ tìm thấy hơn</li>
+            <li>Nhận báo cáo định kỳ về lượt tiếp cận và tình trạng tin đăng qua email</li>
+        </ul>
+
+        <a href="{{ url_for('create_post') }}?package=goi_2" class="pricing-btn pricing-btn-orange">
+            Chọn gói này <span>→</span>
+        </a>
+
+        <p class="compare-link">
+            <a href="javascript:void(0)" onclick="showTab('so-sanh')">So sánh với gói khác →</a>
+        </p>
+    </div>
+</div>
+
+        <div class="price-card urgent">
+    <div class="card-badge badge-purple">TỐI ƯU</div>
+    <div class="card-top card-top-purple">
+        <h3>Tìm Gấp</h3>
+        <p>Có đội ngũ CTV thật sự chủ động hỗ trợ lan tỏa thông tin cùng bạn</p>
+    </div>
+    <div class="card-body">
+        <p class="price">{{ "{:,}".format(packages['goi_3']['price']) }} đ</p>
+        <p class="sub-price">Top đề xuất trong {{ packages['goi_3']['days'] }} ngày</p>
+
+        <ul class="feature-list">
+            <li>Bao gồm tất cả quyền lợi của gói Ưu Tiên</li>
+            <li>Đội ngũ CTV chủ động chia sẻ và lan tỏa thông tin trên các nền tảng</li>
+            <li>Đăng thông tin lên đa kênh: Facebook, TikTok, Zalo – tiếp cận nhiều cộng đồng</li>
+            <li>Cam kết gia hạn thêm 7 ngày miễn phí nếu hết hạn mà chưa có phản hồi</li>
+            <li>Nhãn "Tìm Gấp" – ghim vị trí nổi bật nhất trong danh sách</li>
+            <li>Chia sẻ vào fanpage, hội nhóm tìm đồ và groups khu vực liên quan</li>
+            <li>Thông báo ngay khi hệ thống phát hiện thông tin có thể liên quan</li>
+            <li>Liên lạc nhanh khi có người cung cấp thông tin phù hợp</li>
+            <li>Báo cáo tìm kiếm định kỳ qua email – cập nhật lượt tiếp cận và thông tin thu thập</li>
+        </ul>
+
+        <a href="{{ url_for('create_post') }}?package=goi_3" class="pricing-btn pricing-btn-purple">
+            Chọn gói này <span>→</span>
+        </a>
+
+        <p class="compare-link">
+            <a href="javascript:void(0)" onclick="showTab('so-sanh')">So sánh với gói khác →</a>
+        </p>
+    </div>
+</div>
+    </div>
+</section>
+
+<section id="so-sanh" class="tab-section" style="display: none;">
+    <section class="section-head">
+        <h1>So sánh chi tiết các gói dịch vụ</h1>
+        <p>Lựa chọn gói dịch vụ phù hợp nhất với nhu cầu tìm kiếm của bạn. Từ gói miễn phí đến gói VIP với hỗ trợ chuyên viên 24/7.</p>
+    </section>
+
+    <div class="comparison-wrapper">
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Tính năng</th>
+                    <th class="plan-standard">
+                        <div class="plan-box">
+                            <div class="plan-name">Tiêu Chuẩn</div>
+                            <div class="plan-desc">Dành cho người dùng cơ bản</div>
+                            <div class="plan-price">Miễn phí</div>
+                        </div>
+                    </th>
+                    <th class="plan-highlight">
+                        <div class="plan-box">
+                            <div class="plan-name">Nổi Bật</div>
+                            <div class="plan-desc">Tăng khả năng tiếp cận</div>
+                            <div class="plan-price">{{ "{:,}".format(packages['goi_1']['price']) }}đ</div>
+                        </div>
+                    </th>
+                    <th class="plan-priority">
+                        <div class="plan-box">
+                            <div class="plan-name">Ưu Tiên</div>
+                            <div class="plan-desc">Tìm kiếm hiệu quả nhất</div>
+                            <div class="plan-price">{{ "{:,}".format(packages['goi_2']['price']) }}đ</div>
+                        </div>
+                    </th>
+                    <th class="plan-urgent">
+                        <div class="plan-box">
+                            <div class="plan-name">Tìm Gấp</div>
+                            <div class="plan-desc">Ưu tiên cao nhất, hỗ trợ chuyên viên</div>
+                            <div class="plan-price">{{ "{:,}".format(packages['goi_3']['price']) }}đ</div>
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="section-row">
+                    <td colspan="5">CƠ BẢN</td>
+                </tr>
+                <tr>
+                    <td>Thời gian hiển thị</td>
+                    <td>0 ngày</td>
+                    <td>{{ packages['goi_1']['days'] }} ngày</td>
+                    <td>{{ packages['goi_2']['days'] }} ngày</td>
+                    <td>{{ packages['goi_3']['days'] }} ngày</td>
+                </tr>
+                <tr>
+                    <td>Vị trí hiển thị</td>
+                    <td>Thông thường</td>
+                    <td>Ghim bài {{ packages['goi_1']['days'] }} ngày</td>
+                    <td>Ghim bài {{ packages['goi_2']['days'] }} ngày</td>
+                    <td>Ghim bài {{ packages['goi_3']['days'] }} ngày</td>
+                </tr>
+                <tr>
+                    <td>Số lượng tin đăng</td>
+                    <td>1 tin/tuần</td>
+                    <td>Không giới hạn</td>
+                    <td>Không giới hạn</td>
+                    <td>Không giới hạn</td>
+                </tr>
+                <tr>
+                    <td>Tính năng tìm kiếm</td>
+                    <td>Cơ bản</td>
+                    <td>Cơ bản</td>
+                    <td>Nâng cao</td>
+                    <td>Ưu tiên cao nhất</td>
+                </tr>
+
+                <tr class="section-row">
+                    <td colspan="5">TÍNH NĂNG NÂNG CAO</td>
+                </tr>
+                <tr>
+                    <td>Nhãn dán đặc biệt</td>
+                    <td>❌</td>
+                    <td>"Nổi Bật"</td>
+                    <td>"Ưu Tiên"</td>
+                    <td>"Tìm Gấp"</td>
+                </tr>
+                <tr>
+                    <td>AI quét tự động</td>
+                    <td>❌</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                </tr>
+                <tr>
+                    <td>Thông báo định kỳ</td>
+                    <td>❌</td>
+                    <td>Email</td>
+                    <td>Email + Push</td>
+                    <td>Ngay lập tức</td>
+                </tr>
+                <tr>
+                    <td>Tự động đẩy lên fanpage</td>
+                    <td>❌</td>
+                    <td>❌</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                </tr>
+                <tr>
+                    <td>Đăng lên hội nhóm tìm đồ</td>
+                    <td>❌</td>
+                    <td>❌</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                </tr>
+
+                <tr class="section-row">
+                    <td colspan="5">HỖ TRỢ CHUYÊN VIÊN</td>
+                </tr>
+                <tr>
+                    <td>Tư vấn chỉnh sửa tin đăng</td>
+                    <td>❌</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                </tr>
+                <tr>
+                    <td>CTV hỗ trợ tìm kiếm</td>
+                    <td>❌</td>
+                    <td>❌</td>
+                    <td>❌</td>
+                    <td>✅</td>
+                </tr>
+                <tr>
+                    <td>Liên lạc khi có thông tin</td>
+                    <td>❌</td>
+                    <td>❌</td>
+                    <td>❌</td>
+                    <td>Ngay lập tức</td>
+                </tr>
+                <tr>
+                    <td>Gia hạn tin đăng</td>
+                    <td>❌</td>
+                    <td>❌</td>
+                    <td>+2 ngày miễn phí</td>
+                    <td>+7 ngày miễn phí</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<script>
+    function showTab(tabName) {
+        const bangGia = document.getElementById("bang-gia");
+        const soSanh = document.getElementById("so-sanh");
+        const btnBangGia = document.getElementById("btn-bang-gia");
+        const btnSoSanh = document.getElementById("btn-so-sanh");
+
+        if (tabName === "bang-gia") {
+            bangGia.style.display = "block";
+            soSanh.style.display = "none";
+            btnBangGia.classList.add("active");
+            btnSoSanh.classList.remove("active");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+            bangGia.style.display = "none";
+            soSanh.style.display = "block";
+            btnSoSanh.classList.add("active");
+            btnBangGia.classList.remove("active");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    }
+</script>
+{% endblock %}

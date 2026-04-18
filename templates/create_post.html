@@ -1,0 +1,1346 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Đăng tin mới{% endblock %}
+{% block page_title %}Đăng tin mới{% endblock %}
+
+{% block content %}
+<section class="create-hero" style="background-color: #eff6ff; padding: 40px 0; border-bottom: 1px solid #e2e8f0; margin-bottom: -40px;">
+    <div class="container" style="max-width: 1100px; margin: 0 auto; padding: 0 20px; position: relative;">
+        <!-- Top Text Area -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
+            <div style="max-width: 700px;">
+                <h1 style="color: #0d9488; font-size: 26px; font-weight: bold; margin: 0 0 10px 0; display:flex; align-items:center; gap:8px;">Chúng tôi sẽ giúp bạn tìm lại đồ</h1>
+                <p style="color: #475569; font-size: 14px; margin: 0; line-height: 1.6;">PTIT Lost &amp; Found giúp sinh viên và cán bộ PTIT tìm lại đồ thất lạc. Đăng tin ngay để kết nối với người nhặt được đồ của bạn.</p>
+            </div>
+            
+            <div style="display: flex; gap: 12px; margin-top: 5px;">
+                <a href="#" style="padding: 10px 18px; background: white; border: 1px solid #cbd5e1; border-radius: 8px; color: #475569; text-decoration: none; font-size: 14px; font-weight: 500; display: inline-block;">Hướng dẫn</a>
+                <a href="#" style="padding: 10px 18px; background: #0d9488; color: white; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 500; display: inline-block;">Liên hệ hỗ trợ</a>
+            </div>
+        </div>
+
+        <!-- Features Bar -->
+        <div style="margin-top: 30px; display: flex; justify-content: center;">
+            <div style="background: rgba(255,255,255,0.7); padding: 12px 30px; border-radius: 99px; display: inline-flex; gap: 40px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 8px; color: #15803d; font-size: 13px; font-weight: 500;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Tư vấn miễn phí
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; color: #15803d; font-size: 13px; font-weight: 500;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Phản hồi nhanh chóng
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; color: #15803d; font-size: 13px; font-weight: 500;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                    Bảo mật thông tin
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; color: #15803d; font-size: 13px; font-weight: 500;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    Hoạt động toàn quốc
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="height: 60px;"></div>
+</section>
+
+<div class="create-layout form-box create-form-card" style="width: 92%; max-width: 1100px; margin: 0 auto 40px; padding: 30px 40px; position: relative; z-index: 10; background: #fff;">
+    <div class="create-main">
+        <form method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="create-stepbar">
+                <div class="step-item step-item-basic active">
+                    <span>1</span>
+                    <strong>Thông tin cơ bản</strong>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item step-item-display">
+                    <span>2</span>
+                    <strong>Tùy chọn hiển thị</strong>
+                </div>
+            </div>
+
+            <div id="step-basic" class="step-panel">
+                <h2 class="create-section-title">Chọn loại bài đăng</h2>
+
+                <div class="post-type-grid">
+                    <label class="post-type-card post-type-lost" id="lost-card">
+                        <input type="radio" name="post_type" value="lost" {{ 'checked' if form_data.get('post_type','lost') == 'lost' else '' }} onchange="togglePostType()">
+                        <div class="post-type-icon">🔍</div>
+                        <div>
+                            <strong>Tìm đồ thất lạc</strong>
+                            <p>Đăng bài để tìm kiếm món đồ bạn bị mất</p>
+                        </div>
+                        <span class="post-type-check">✓</span>
+                    </label>
+
+                    <label class="post-type-card post-type-found" id="found-card">
+                        <input type="radio" name="post_type" value="found" {{ 'checked' if form_data.get('post_type') == 'found' else '' }} onchange="togglePostType()">
+                        <div class="post-type-icon">📍</div>
+                        <div>
+                            <strong>Nhặt được đồ</strong>
+                            <p>Đăng bài về món đồ bạn nhặt được</p>
+                        </div>
+                        <span class="post-type-check">✓</span>
+                    </label>
+                </div>
+
+                <h2 class="create-section-title">Thông tin chi tiết</h2>
+
+                <div class="grid-form">
+                    <div style="grid-column:1 / -1;">
+                        <label for="title"><strong>Tiêu đề <span style="color:red">*</span></strong></label>
+                        <input type="text" id="title" name="title" required placeholder="Nhập tiêu đề bài viết" value="{{ form_data.get('title','') }}">
+
+                        <div class="hint-box" id="title-hint-box">
+                            <strong>Hướng dẫn:</strong> Tiêu đề nên ngắn gọn và rõ ràng.<br>
+                            <em id="title-example">VD: Rơi ví/giấy tờ tuỳ thân Nguyễn Văn A 2005 rơi ở nhà xe PTIT.</em>
+                        </div>
+                    </div>
+
+                    <div style="grid-column:1 / -1;">
+                        <label for="description"><strong>Nội dung chi tiết <span style="color:red">*</span></strong></label>
+                        <textarea id="description" name="description" rows="6" placeholder="Mô tả màu sắc, kích thước, đặc điểm nhận dạng, hoàn cảnh làm rơi/nhặt được..." required>{{ form_data.get('description','') }}</textarea>
+
+                        <div class="note-box">
+                            <strong>Lưu ý:</strong>
+                            <ul>
+                                <li>Che thông tin nhạy cảm trước khi tải ảnh lên (CMND, thẻ ngân hàng, địa chỉ,...)</li>
+                                <li>Chỉ hiển thị thông tin cần thiết để nhận dạng</li>
+                                <li>Không nhập SĐT trong mô tả, nhập ở phần Liên hệ bên dưới</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div style="grid-column:1 / -1;">
+                        <label><strong>Ảnh minh họa <span style="color:red">*</span></strong></label>
+                        <p style="font-size:12px;color:#64748b;margin:3px 0 10px;">Bắt buộc — tải ảnh thật hoặc chọn ảnh mẫu phù hợp bên dưới</p>
+
+                        <!-- Upload zone (hidden when image selected) -->
+                        <div id="drop-zone-wrap">
+                            <div id="drop-zone" onclick="document.getElementById('image').click()"
+                                style="border: 2px dashed #c7d4e1; border-radius: 14px; background: #f8fbff; padding: 22px 20px; display: flex; align-items: center; gap: 20px; cursor: pointer; transition: border-color 0.2s, background 0.2s;">
+                                <div style="width: 80px; height: 80px; border: 2px dashed #c7d4e1; border-radius: 10px; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; font-size: 12px; color: #94a3b8; gap: 4px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#16a34a" stroke-width="1.5" width="30" height="30"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+                                    <span>Chọn ảnh</span>
+                                </div>
+                                <div>
+                                    <p style="font-size: 14px; font-weight: 600; color: #1e293b; margin: 0 0 4px;">Kéo thả hoặc chọn ảnh thật của bạn</p>
+                                    <p style="font-size: 12px; color: #64748b; margin: 0 0 10px;">Hỗ trợ JPG, PNG (tối đa 10 MB)</p>
+                                    <button type="button" onclick="event.stopPropagation(); document.getElementById('image').click();"
+                                        style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1.5px solid #16a34a; border-radius: 8px; color: #16a34a; background: white; font-size: 13px; font-weight: 600; cursor: pointer;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                        Tải ảnh lên
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="file" id="image" name="image" accept="image/*" style="display:none;" onchange="previewImage(this)">
+
+                        <!-- Selected image preview (shown after file/sample chosen) -->
+                        <div id="img-selected-wrap" style="display:none; margin-top:10px;">
+                            <div style="background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:12px; padding:12px 16px; display:flex; align-items:center; gap:14px;">
+                                <div id="img-selected-thumb" style="width:72px;height:72px;border-radius:8px;overflow:hidden;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0;"></div>
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px;">Ảnh đã chọn</div>
+                                    <div id="img-selected-label" style="font-size:13px;font-weight:700;color:#15803d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+                                </div>
+                                <button type="button" onclick="clearImageSelection()"
+                                    style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border:1px solid #ef4444;border-radius:8px;color:#ef4444;background:white;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                    Xóa &amp; chọn lại
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Sample images -->
+                        <p style="margin-top: 16px; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #374151;">Không có ảnh? Chọn ảnh mẫu phù hợp với đồ vật:</p>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                            <div class="sample-img-item" onclick="selectSampleImg(this, 'cccd')" style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 12px 8px; text-align: center; cursor: pointer; background: white; transition: border-color 0.2s, background 0.2s;">
+                                <div style="font-size: 38px; margin-bottom: 6px;">🪪</div>
+                                <div style="font-size: 12px; font-weight: 600; color: #374151;">Thẻ căn cước/CMND</div>
+                            </div>
+                            <div class="sample-img-item" onclick="selectSampleImg(this, 'wallet')" style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 12px 8px; text-align: center; cursor: pointer; background: white; transition: border-color 0.2s, background 0.2s;">
+                                <div style="font-size: 38px; margin-bottom: 6px;">👛</div>
+                                <div style="font-size: 12px; font-weight: 600; color: #374151;">Ví/Túi tiền</div>
+                            </div>
+                            <div class="sample-img-item" onclick="selectSampleImg(this, 'key')" style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 12px 8px; text-align: center; cursor: pointer; background: white; transition: border-color 0.2s, background 0.2s;">
+                                <div style="font-size: 38px; margin-bottom: 6px;">🔑</div>
+                                <div style="font-size: 12px; font-weight: 600; color: #374151;">Chìa khóa</div>
+                            </div>
+                            <div class="sample-img-item" onclick="selectSampleImg(this, 'phone')" style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 12px 8px; text-align: center; cursor: pointer; background: white; transition: border-color 0.2s, background 0.2s;">
+                                <div style="font-size: 38px; margin-bottom: 6px;">📱</div>
+                                <div style="font-size: 12px; font-weight: 600; color: #374151;">Điện thoại/Thiết bị</div>
+                            </div>
+                            <div class="sample-img-item" onclick="selectSampleImg(this, 'student_card')" style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 12px 8px; text-align: center; cursor: pointer; background: white; transition: border-color 0.2s, background 0.2s;">
+                                <div style="font-size: 38px; margin-bottom: 6px;">🎓</div>
+                                <div style="font-size: 12px; font-weight: 600; color: #374151;">Thẻ sinh viên</div>
+                            </div>
+                            <div class="sample-img-item" onclick="selectSampleImg(this, 'bag')" style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 12px 8px; text-align: center; cursor: pointer; background: white; transition: border-color 0.2s, background 0.2s;">
+                                <div style="font-size: 38px; margin-bottom: 6px;">🎒</div>
+                                <div style="font-size: 12px; font-weight: 600; color: #374151;">Balo/Túi xách</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="sample_image_key" name="sample_image_key" value="">
+                    </div>
+
+                    <div>
+                        <label for="category"><strong>Danh mục <span style="color:red">*</span></strong></label>
+                        <select id="category" name="category" required>
+                            <option value="">-- Chọn danh mục --</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat['name'] }}" {{ 'selected' if form_data.get('category') == cat['name'] else '' }}>{{ cat['icon'] }} {{ cat['name'] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="event_date"><strong>Ngày xảy ra <span style="color:red">*</span></strong></label>
+                        <input type="date" id="event_date" name="event_date" required value="{{ form_data.get('event_date','') }}">
+                    </div>
+
+                    <div>
+                        <label for="location"><strong>Địa điểm <span style="color:red">*</span></strong></label>
+                        <input type="text" id="location" name="location" required placeholder="Ví dụ: Nhà xe, sân trường, phòng học..." value="{{ form_data.get('location','') }}">
+                    </div>
+
+                    <div>
+                        <label for="campus"><strong>Cơ sở <span style="color:red">*</span></strong></label>
+                        <select id="campus" name="campus" required>
+                            <option value="">-- Chọn cơ sở --</option>
+                            <option value="Cơ sở chính" {{ 'selected' if form_data.get('campus') == 'Cơ sở chính' else '' }}>Cơ sở chính</option>
+                            <option value="Cơ sở Ngọc Trục" {{ 'selected' if form_data.get('campus') == 'Cơ sở Ngọc Trục' else '' }}>Cơ sở Ngọc Trục</option>
+                            <option value="Cơ sở Hoàng Quốc Việt" {{ 'selected' if form_data.get('campus') == 'Cơ sở Hoàng Quốc Việt' else '' }}>Cơ sở Hoàng Quốc Việt</option>
+                            <option value="Cơ sở Hồ Chí Minh" {{ 'selected' if form_data.get('campus') == 'Cơ sở Hồ Chí Minh' else '' }}>Cơ sở Hồ Chí Minh</option>
+                        </select>
+                    </div>
+
+                    <!-- TAGS (dưới cơ sở) -->
+                    <div>
+                        <label style="font-weight:700;font-size:14px;color:#1e293b;">
+                            Nhập các tags <span style="font-weight:400;font-size:12px;color:#94a3b8;">(Tối đa 3 tags)</span>
+                        </label>
+
+                        <div id="tag-chips" style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px;margin:8px 0;"></div>
+
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <input type="text" id="tag-input"
+                                placeholder="Nhập tag ..."
+                                maxlength="30"
+                                style="flex:1;padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;"
+                                onfocus="this.style.borderColor='#16a34a'" onblur="this.style.borderColor='#e2e8f0'">
+                            <button type="button" onclick="addTag()"
+                                style="padding:8px 16px;background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:700;color:#374151;cursor:pointer;">
+                                Thêm
+                            </button>
+                        </div>
+                        <p style="font-size:11px;color:#94a3b8;margin-top:4px;">Nhấn Enter hoặc dấu phẩy để thêm tag nhanh</p>
+
+                        <div style="margin-top:8px;">
+                            <span style="font-size:12px;color:#64748b;">Nên chọn tags phổ biến:</span>
+                            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">
+                                {% for pt in ['Ví','CCCD','Chìa khóa','Điện thoại','Thẻ xe','Laptop','Thẻ sinh viên','Tai nghe','Balo','Sách vở','Trang sức'] %}
+                                <button type="button" onclick="addTagValue('{{ pt }}')"
+                                    style="padding:5px 12px;border-radius:999px;border:1.5px solid #16a34a;background:white;color:#16a34a;font-size:12px;font-weight:600;cursor:pointer;">
+                                    + {{ pt }}
+                                </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="tags" id="tags-hidden">
+                        <p style="font-size:12px;color:#64748b;margin-top:8px;">Thêm tags giúp bài đăng dễ tìm kiếm hơn. Tối đa 3 tags.</p>
+                    </div>
+
+                    <div style="grid-column:1 / -1;">
+                        <h2 class="create-section-title" style="margin-top: 6px;">Thông tin xác thực & Liên hệ</h2>
+                        <label for="verification_hint"><strong id="label_verification_hint">Thông tin xác thực (Hiển thị công khai một phần)</strong> <span style="color:red">*</span></label>
+                        <input style="margin-top: 5px; margin-bottom: 5px;" type="text" id="verification_hint" name="verification_hint" required placeholder="Đặc điểm, dấu hiệu nhận biết, vật đi kèm..." value="{{ form_data.get('verification_hint','') }}">
+                        <small id="hint_verification_hint" style="color: #666; display: block; margin-bottom: 15px;">Giúp người nhận đồ dễ dàng đối chiếu. Đối với tin nhặt được đồ, thông tin này sẽ được lưu ẩn để xác minh.</small>
+
+                        <label for="private_verification_note"><strong>Ghi chú riêng tư (Không hiển thị công khai)</strong> <span style="color:red">*</span></label>
+                        <textarea style="margin-top: 5px; margin-bottom: 15px;" id="private_verification_note" name="private_verification_note" rows="2" required placeholder="Chi tiết chỉ chủ thật sự mới biết (mật khẩu, vết xước bí mật...)">{{ form_data.get('private_verification_note','') }}</textarea>
+
+                        <label for="contact"><strong>Số điện thoại <span style="color:red">*</span></strong></label>
+                        <input style="margin-top: 5px;" type="text" id="contact" name="contact" required placeholder="Nhập số điện thoại liên hệ" value="{{ form_data.get('contact','') }}">
+                    </div>
+                </div>
+            </div>
+
+            <div id="step-display" class="step-panel" style="display:none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 22px; margin-bottom: 22px;">
+                    <h2 class="create-section-title" style="margin-top: 0; margin-bottom: 0;">Tùy chọn hiển thị</h2>
+                    <a href="{{ url_for('pricing') }}" class="btn ghost" style="font-size: 13px; padding: 6px 12px; color: #16a34a; border-color: #bbf7d0; background: #f0fdf4; border-radius: 999px;">So sánh chi tiết các gói &nearr;</a>
+                </div>
+
+                <div>
+                    <div class="display-options">
+                        <label class="package-card {{ 'active' if form_data.get('selected_package','free') == 'free' else '' }}" data-package="free">
+                            <input type="radio" name="selected_package" value="free" {{ 'checked' if form_data.get('selected_package','free') == 'free' else '' }} onchange="togglePackage()">
+                            <div class="package-row">
+                                <div>
+                                    <h3>Tin Thường</h3>
+                                    <ul style="list-style-type: none; padding: 0; margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+                                        <li style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #475569; line-height: 1.5;">
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="16" height="16" style="flex-shrink:0; margin-top:2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>Tin cần chờ admin duyệt trước khi hiển thị</span>
+                                        </li>
+                                        <li style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #475569; line-height: 1.5;">
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="16" height="16" style="flex-shrink:0; margin-top:2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>Hiển thị phía sau các tin được hỗ trợ ưu tiên</span>
+                                        </li>
+                                        <li style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #475569; line-height: 1.5;">
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="16" height="16" style="flex-shrink:0; margin-top:2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>Bạn tự theo dõi – chưa có hệ thống hỗ trợ lan tỏa thêm</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="package-price-side" style="color: #16a34a; font-size: 16px; font-weight: bold; padding-top: 4px;">Miễn phí</div>
+                            </div>
+                        </label>
+
+                        <label class="package-card {{ 'active' if form_data.get('selected_package') == 'goi_1' else '' }}" data-package="goi_1">
+                            <input type="radio" name="selected_package" value="goi_1" {{ 'checked' if form_data.get('selected_package') == 'goi_1' else '' }} onchange="togglePackage()">
+                            <div class="package-row">
+                                <div>
+                                    <h3>Nổi Bật</h3>
+                                    <ul style="list-style-type: none; padding: 0; margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+                                        <li style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #475569; line-height: 1.5;">
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="16" height="16" style="flex-shrink:0; margin-top:2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>Tin được ưu tiên hiển thị sau khi admin duyệt — xem trước các tin thường</span>
+                                        </li>
+                                        <li style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #475569; line-height: 1.5;">
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="16" height="16" style="flex-shrink:0; margin-top:2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>Chia sẻ tin lên fanpage và 10+ hội nhóm tìm đồ</span>
+                                        </li>
+                                        <li style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #475569; line-height: 1.5;">
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="16" height="16" style="flex-shrink:0; margin-top:2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>Ưu tiên hiển thị trong danh sách – xếp trên các tin thường</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="package-price-side" style="text-align: right; padding-top: 4px;">
+                                    <div style="color: #16a34a; font-size: 16px; font-weight: bold;">10.000 đ</div>
+                                    <div style="font-size: 12px; color: #94a3b8; font-weight: normal; margin-top: 2px;">~3k/ngày</div>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="package-card {{ 'active' if form_data.get('selected_package') == 'goi_2' else '' }}" data-package="goi_2">
+                            <input type="radio" name="selected_package" value="goi_2" {{ 'checked' if form_data.get('selected_package') == 'goi_2' else '' }} onchange="togglePackage()">
+                            <div class="package-row">
+                                <div>
+                                    <h3>Ưu Tiên</h3>
+                                    <ul style="list-style-type: none; padding: 0; margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+                                        <li style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #475569; line-height: 1.5;">
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="16" height="16" style="flex-shrink:0; margin-top:2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>Gồm gói Nổi Bật, thêm:</span>
+                                        </li>
+                                        <li style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #475569; line-height: 1.5;">
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="16" height="16" style="flex-shrink:0; margin-top:2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>Chia sẻ tin lên fanpage và 20+ hội nhóm tìm đồ</span>
+                                        </li>
+                                        <li style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #475569; line-height: 1.5;">
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="16" height="16" style="flex-shrink:0; margin-top:2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>Hệ thống tự động rà soát và đối chiếu với các tin mới 24/7</span>
+                                        </li>
+                                        <li style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #475569; line-height: 1.5;">
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="16" height="16" style="flex-shrink:0; margin-top:2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>Cam kết gia hạn thêm 2 ngày miễn phí nếu hết hạn chưa có phản hồi</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="package-price-side" style="text-align: right; padding-top: 4px;">
+                                    <div style="color: #16a34a; font-size: 16px; font-weight: bold;">20.000 đ</div>
+                                    <div style="font-size: 12px; color: #94a3b8; font-weight: normal; margin-top: 2px;">~4k/ngày</div>
+                                </div>
+                            </div>
+                            <span class="package-badge recommend">KHUYẾN DÙNG</span>
+                        </label>
+
+                        <label class="package-card {{ 'active' if form_data.get('selected_package') == 'goi_3' else '' }}" data-package="goi_3">
+                            <input type="radio" name="selected_package" value="goi_3" {{ 'checked' if form_data.get('selected_package') == 'goi_3' else '' }} onchange="togglePackage()">
+                            <div class="package-row">
+                                <div>
+                                    <h3>Tìm Gấp</h3>
+                                    <ul style="list-style-type: none; padding: 0; margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+                                        <li style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #475569; line-height: 1.5;">
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="16" height="16" style="flex-shrink:0; margin-top:2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>Gồm gói Ưu Tiên, thêm:</span>
+                                        </li>
+                                        <li style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #475569; line-height: 1.5;">
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="16" height="16" style="flex-shrink:0; margin-top:2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>Đội ngũ CTV chủ động chia sẻ và lan tỏa thông tin</span>
+                                        </li>
+                                        <li style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #475569; line-height: 1.5;">
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="16" height="16" style="flex-shrink:0; margin-top:2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>Đăng thông tin lên đa kênh: Facebook, TikTok, Zalo</span>
+                                        </li>
+                                        <li style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #475569; line-height: 1.5;">
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="16" height="16" style="flex-shrink:0; margin-top:2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>Cam kết gia hạn thêm 7 ngày miễn phí nếu hết hạn chưa có phản hồi</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="package-price-side" style="text-align: right; padding-top: 4px;">
+                                    <div style="color: #16a34a; font-size: 16px; font-weight: bold;">30.000 đ</div>
+                                    <div style="font-size: 12px; color: #94a3b8; font-weight: normal; margin-top: 2px;">~3k/ngày</div>
+                                </div>
+                            </div>
+                            <span class="package-badge best">TỐI ƯU</span>
+                        </label>
+
+                        <div id="free-package-box" class="package-detail-box">
+                            <div class="simple-info-box">
+                                <p><strong>Với gói miễn phí, lưu ý:</strong></p>
+                                <ul>
+                                    <li>Tin cần chờ duyệt trước khi hiển thị</li>
+                                    <li>Bài bị trôi xuống – không được đề xuất nếu chưa có hỗ trợ</li>
+                                    <li>Không nhận thông báo khi có tin nhặt được trùng khớp</li>
+                                </ul>
+                                <p>Sau khi đăng, bạn vẫn có thể nâng cấp bất cứ lúc nào để tăng cơ hội tìm lại đồ.</p>
+                            </div>
+                        </div>
+
+                        <div id="vip-package-box" class="package-detail-box" style="display:none;">
+                            <div class="payment-info-box">
+                                <h3>Thanh toán</h3>
+                                <p>Vui lòng chuyển khoản đúng thông tin bên dưới:</p>
+
+                                <div class="payment-detail-grid">
+                                    <div><strong>Số tài khoản:</strong> {{ site_bank_account }}</div>
+                                    <div><strong>Chủ tài khoản:</strong> {{ site_bank_owner }}</div>
+                                    <div><strong>Số tiền:</strong> <span id="payment-amount">10.000đ</span></div>
+                                    <div><strong>Nội dung CK:</strong> <span id="payment-content" style="color:#dc2626; font-weight:700;">LF-[ID]-goi_1-{{ session.get('username', '') }}</span></div>
+                                </div>
+
+                                <div class="qr-box" style="padding:18px;">
+                                    <p style="font-weight:700;margin-bottom:12px;font-size:14px;">Quét QR chuyển khoản</p>
+                                    <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;">
+                                        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+                                            <img id="vip-qr-img"
+                                                src="https://img.vietqr.io/image/MB-{{ site_bank_account }}-compact2.png?amount=10000&addInfo=LF-ID-goi_1-{{ session.get('username','') }}&accountName={{ site_bank_owner | urlencode }}"
+                                                alt="QR chuyển khoản"
+                                                style="width:180px;height:auto;border-radius:10px;border:1px solid #e2e8f0;display:block;">
+                                            <div style="font-size:11px;color:#64748b;text-align:center;line-height:1.5;">
+                                                <strong style="color:#0f172a;">{{ site_bank_owner }}</strong><br>
+                                                {{ site_bank_name }} · {{ site_bank_account }}
+                                            </div>
+                                        </div>
+                                        <div style="flex:1;min-width:180px;">
+                                            <div style="font-size:12px;color:#64748b;margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Thông tin chuyển khoản</div>
+                                            <div style="display:flex;flex-direction:column;gap:6px;">
+                                                <div style="display:flex;justify-content:space-between;padding:8px 12px;background:#f8fafc;border-radius:8px;font-size:13px;">
+                                                    <span style="color:#64748b;">Ngân hàng</span>
+                                                    <strong>{{ site_bank_name }}</strong>
+                                                </div>
+                                                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f8fafc;border-radius:8px;font-size:13px;gap:8px;">
+                                                    <span style="color:#64748b;">Số TK</span>
+                                                    <div style="display:flex;align-items:center;gap:6px;">
+                                                        <strong>{{ site_bank_account }}</strong>
+                                                        <button type="button" class="copy-btn" onclick="copyInlineText('{{ site_bank_account }}',this)">
+                                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div style="display:flex;justify-content:space-between;padding:8px 12px;background:#f8fafc;border-radius:8px;font-size:13px;">
+                                                    <span style="color:#64748b;">Số tiền</span>
+                                                    <strong id="payment-amount-2" style="color:#16a34a;">10.000đ</strong>
+                                                </div>
+                                                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#fef3c7;border-radius:8px;font-size:13px;gap:8px;">
+                                                    <span style="color:#92400e;">Nội dung CK</span>
+                                                    <div style="display:flex;align-items:center;gap:6px;">
+                                                        <strong id="payment-content-2" style="color:#b45309;">LF-[ID]-goi_1-{{ session.get('username','') }}</strong>
+                                                        <button type="button" class="copy-btn" onclick="copyInlineText(document.getElementById('payment-content-2').textContent,this)">
+                                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="note-box" style="margin-top:14px;">
+                                    <strong>Lưu ý:</strong>
+                                    <ul>
+                                        <li>Nội dung chuyển khoản phải đúng định dạng: <strong>LF-[ID bài]-[gói]-[têi khoản]</strong> — hệ thống sẽ gửi sau khi đăng bài</li>
+                                        <li>Sau khi đăng bài, hệ thống sẽ tạo yêu cầu chờ admin xác nhận thanh toán</li>
+                                        <li>Khi admin xác nhận, bài đăng sẽ được nâng cấp đúng gói đã chọn</li>
+                                    </ul>
+                                </div>
+
+                                <!-- Payment proof upload - REQUIRED -->
+                                <div style="margin-top:16px;padding:16px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:12px;">
+                                    <div style="font-size:14px;font-weight:700;color:#92400e;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                        Ảnh xác nhận chuyển khoản <span style="color:#ef4444;">*</span>
+                                    </div>
+                                    <p style="font-size:12px;color:#78716c;margin:0 0 12px;">Chụp màn hình biên lai / bill chuyển khoản để admin duyệt nhanh hơn. <strong style="color:#b45309;">Bắt buộc khi chọn gói VIP.</strong></p>
+
+                                    <!-- Upload zone -->
+                                    <div id="proof-upload-wrap">
+                                        <div id="proof-drop-zone" onclick="document.getElementById('payment_proof').click()"
+                                            style="border:2px dashed #fed7aa;border-radius:10px;background:#fff;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .2s,background .2s;">
+                                            <div style="width:56px;height:56px;border:2px dashed #fed7aa;border-radius:8px;background:#fff7ed;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;gap:3px;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#f97316" stroke-width="1.5" width="24" height="24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+                                                <span style="font-size:10px;color:#f97316;font-weight:600;">Chọn ảnh</span>
+                                            </div>
+                                            <div>
+                                                <p style="font-size:13px;font-weight:600;color:#1e293b;margin:0 0 3px;">Tải ảnh bill chuyển khoản</p>
+                                                <p style="font-size:11px;color:#94a3b8;margin:0 0 8px;">JPG, PNG — tối đa 5 MB</p>
+                                                <button type="button" onclick="event.stopPropagation();document.getElementById('payment_proof').click();"
+                                                    style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:1.5px solid #f97316;border-radius:7px;color:#f97316;background:white;font-size:12px;font-weight:600;cursor:pointer;">
+                                                    📎 Chọn file
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <input type="file" id="payment_proof" name="payment_proof" accept="image/*" style="display:none;" onchange="previewProof(this)">
+
+                                    <!-- Selected proof preview -->
+                                    <div id="proof-selected-wrap" style="display:none;margin-top:10px;">
+                                        <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:12px;">
+                                            <div id="proof-thumb" style="width:64px;height:64px;border-radius:7px;overflow:hidden;flex-shrink:0;background:#e2e8f0;display:flex;align-items:center;justify-content:center;"></div>
+                                            <div style="flex:1;min-width:0;">
+                                                <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px;">Ảnh xác nhận đã chọn</div>
+                                                <div id="proof-label" style="font-size:12px;font-weight:700;color:#15803d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+                                            </div>
+                                            <button type="button" onclick="clearProof()" style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border:1px solid #ef4444;border-radius:7px;color:#ef4444;background:white;font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0;">
+                                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                                Xóa
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+
+            <div class="actions step-actions" style="margin-top: 20px;">
+                <a href="{{ url_for('home') }}" class="btn ghost" id="cancel-btn">Quay lại</a>
+
+                <button type="button" class="btn primary" id="next-step-btn" onclick="goToStep2()">
+                    Tiếp tục
+                </button>
+
+                <button type="button" class="btn ghost" id="back-step-btn" onclick="goToStep1()" style="display:none;">
+                    Quay lại bước 1
+                </button>
+
+                <button type="button" class="btn primary" id="submit-btn" style="display:none;" onclick="validateAndSubmit()">
+                    Đăng bài
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <aside class="create-sidebar">
+        <div id="lost-sidebar">
+            <div class="sidebar-box sidebar-green" style="border:none; background:#f0fdf4; padding:20px; border-radius:12px;">
+                <h3 style="font-size:18px; color:#0f172a; margin-bottom:16px;">Làm thế nào để tăng tỷ lệ tìm thấy?</h3>
+                <ul style="list-style-type:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px;">
+                    <li style="display:flex; align-items:flex-start; gap:8px; line-height:1.5;"><span style="color:#10b981; font-weight:bold;">•</span> <span>Cung cấp đầy đủ thông tin về đồ vật bị mất</span></li>
+                    <li style="display:flex; align-items:flex-start; gap:8px; line-height:1.5;"><span style="color:#10b981; font-weight:bold;">•</span> <span>Mô tả chi tiết đặc điểm nhận dạng</span></li>
+                    <li style="display:flex; align-items:flex-start; gap:8px; line-height:1.5;"><span style="color:#10b981; font-weight:bold;">•</span> <span>Thêm ảnh rõ nét của đồ vật (nếu có)</span></li>
+                    <li style="display:flex; align-items:flex-start; gap:8px; line-height:1.5;"><span style="color:#10b981; font-weight:bold;">•</span> <span>Chọn gói đăng tin phù hợp để tiếp cận nhiều người hơn</span></li>
+                    <li style="display:flex; align-items:flex-start; gap:8px; line-height:1.5;"><span style="color:#10b981; font-weight:bold;">•</span> <span>Cập nhật thông tin khi cần thiết</span></li>
+                </ul>
+            </div>
+
+            <div class="sidebar-box sidebar-red" style="border:none; background:#fff5f5; padding:20px; border-radius:12px;">
+                <h3 style="font-size:18px; color:#0f172a; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="#10b981" stroke-width="2" width="22" height="22"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Cảnh báo lừa đảo
+                </h3>
+                <ul style="list-style-type:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px;">
+                    <li style="display:flex; align-items:flex-start; gap:8px; line-height:1.5;"><span style="color:#ef4444; font-weight:bold;">•</span> <span style="color:#991b1b;">Cảnh giác với người nhận không cung cấp được thông tin chi tiết về đồ vật</span></li>
+                    <li style="display:flex; align-items:flex-start; gap:8px; line-height:1.5;"><span style="color:#ef4444; font-weight:bold;">•</span> <span style="color:#991b1b;">Không chấp nhận yêu cầu chuyển khoản hoặc thanh toán phí từ người nhận</span></li>
+                    <li style="display:flex; align-items:flex-start; gap:8px; line-height:1.5;"><span style="color:#ef4444; font-weight:bold;">•</span> <span style="color:#991b1b;">Nên gặp trực tiếp tại nơi công cộng để trao đồ và xác minh</span></li>
+                </ul>
+            </div>
+
+            <div class="sidebar-box premium-box" style="padding:0; overflow:hidden; border:none; border-radius:12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <div style="background: linear-gradient(135deg, #0ea5e9, #3b82f6); padding: 20px; color: white;">
+                    <h3 style="color:white; margin:0; font-size:18px; display:flex; align-items:center; gap:8px;">
+                        📌 Tin đặc quyền
+                    </h3>
+                    <p style="color:#e0f2fe; margin-top:4px; margin-bottom:0; font-size:13px; font-weight:400; text-transform:none;">Tăng cơ hội tìm thấy</p>
+                </div>
+                <div style="background:#f8fafc; padding:20px;">
+                    <div class="premium-item" style="display:flex; gap:12px; border:none; padding:0 0 12px 0; margin-bottom:12px; border-bottom:1px solid #e2e8f0;">
+                        <svg class="flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="22" height="22" style="margin-top:2px; flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        <div>
+                            <strong style="color:#0f172a; margin-bottom:4px; font-size:14px; display:block;">Ưu tiên hiển thị</strong>
+                            <p style="color:#64748b; font-size:12px; margin:0; line-height:1.5;">Tin đăng được ưu tiên hiển thị với nhãn dán nổi bật</p>
+                        </div>
+                    </div>
+
+                    <div class="premium-item" style="display:flex; gap:12px; border:none; padding:0 0 12px 0; margin-bottom:12px; border-bottom:1px solid #e2e8f0;">
+                        <svg class="flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="22" height="22" style="margin-top:2px; flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        <div>
+                            <strong style="color:#0f172a; margin-bottom:4px; font-size:14px; display:block;">Tìm kiếm thông minh</strong>
+                            <p style="color:#64748b; font-size:12px; margin:0; line-height:1.5;">AI quét tự động các nguồn tin và thông báo khi có thông tin trùng lặp</p>
+                        </div>
+                    </div>
+
+                    <div class="premium-item" style="display:flex; gap:12px; border:none; padding:0 0 12px 0; margin-bottom:12px; border-bottom:1px solid #e2e8f0;">
+                        <svg class="flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="22" height="22" style="margin-top:2px; flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                        <div>
+                            <strong style="color:#0f172a; margin-bottom:4px; font-size:14px; display:block;">Hỗ trợ đặc biệt</strong>
+                            <p style="color:#64748b; font-size:12px; margin:0; line-height:1.5;">CTV hỗ trợ rà soát tìm kiếm và liên lạc ngay khi có thông tin</p>
+                        </div>
+                    </div>
+
+                    <div class="premium-item" style="display:flex; gap:12px; border:none; padding:0 0 12px 0; margin-bottom:12px;">
+                        <svg class="flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="22" height="22" style="margin-top:2px; flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <div>
+                            <strong style="color:#0f172a; margin-bottom:4px; font-size:14px; display:block;">Ghim nổi bật liên tục</strong>
+                            <p style="color:#64748b; font-size:12px; margin:0; line-height:1.5;">Tin được ghim lên đầu danh sách theo thời gian gói đăng ký</p>
+                        </div>
+                    </div>
+
+                    <div class="premium-highlight" style="margin-top:16px; background:#ffffff; border:none; border-radius:8px; padding:16px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+                        <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+                            <svg class="flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="20" height="20" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                            <strong style="color:#334155; font-size:14px; display:block; margin:0;">Tỷ lệ tìm thấy cao hơn</strong>
+                        </div>
+                        <p style="color:#2563eb; font-size:12px; margin:0; line-height:1.5;">Tăng tỷ lệ tìm thấy với sự hỗ trợ từ đội ngũ chuyên viên và công nghệ AI</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="found-sidebar" style="display:none;">
+            <div class="sidebar-box sidebar-green" style="border:none; background:#f0fdf4; padding:20px; border-radius:12px;">
+                <h3 style="font-size:18px; color:#0f172a; margin-bottom:16px;">Cảm ơn bạn đã giúp đỡ người khác!</h3>
+                <p style="margin-bottom:16px; font-size:14px; color:#334155; line-height:1.6;">
+                    Việc bạn đăng bài về đồ vật nhặt được là một hành động đáng quý. Để giúp chủ nhân tìm thấy đồ nhanh hơn, hãy lưu ý:
+                </p>
+                <ul style="list-style-type:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px;">
+                    <li style="display:flex; align-items:flex-start; gap:8px; line-height:1.5;"><span style="color:#10b981; font-weight:bold;">•</span> <span>Mô tả đặc điểm nhận dạng chung của đồ vật</span></li>
+                    <li style="display:flex; align-items:flex-start; gap:8px; line-height:1.5;"><span style="color:#10b981; font-weight:bold;">•</span> <span>Chỉ cung cấp địa điểm nhặt được một cách tổng quát</span></li>
+                    <li style="display:flex; align-items:flex-start; gap:8px; line-height:1.5;"><span style="color:#10b981; font-weight:bold;">•</span> <span>Yêu cầu người nhận cung cấp thông tin chi tiết để xác minh</span></li>
+                </ul>
+            </div>
+
+            <div class="sidebar-box sidebar-red" style="border:none; background:#fff5f5; padding:20px; border-radius:12px;">
+                <h3 style="font-size:18px; color:#0f172a; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="#10b981" stroke-width="2" width="22" height="22"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Cảnh báo lừa đảo
+                </h3>
+                <ul style="list-style-type:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px;">
+                    <li style="display:flex; align-items:flex-start; gap:8px; line-height:1.5;"><span style="color:#ef4444; font-weight:bold;">•</span> <span style="color:#991b1b;">Cảnh giác với người nhận không cung cấp được thông tin chi tiết về đồ vật</span></li>
+                    <li style="display:flex; align-items:flex-start; gap:8px; line-height:1.5;"><span style="color:#ef4444; font-weight:bold;">•</span> <span style="color:#991b1b;">Không chấp nhận yêu cầu chuyển khoản hoặc thanh toán phí từ người nhận</span></li>
+                    <li style="display:flex; align-items:flex-start; gap:8px; line-height:1.5;"><span style="color:#ef4444; font-weight:bold;">•</span> <span style="color:#991b1b;">Nên gặp trực tiếp tại nơi công cộng để trao đồ và xác minh</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="package-preview" id="package-preview" style="display:none;">
+            <div class="preview-card preview-free" id="preview-card">
+                <div class="preview-header">
+                    <h3 id="preview-title">Tin Thường</h3>
+                </div>
+
+                <div class="preview-body">
+                    <div class="preview-price" id="preview-price">Miễn phí</div>
+                    <div class="preview-badge-line" id="preview-badge-line">Bao gồm:</div>
+
+                    <ul class="preview-features" id="preview-features">
+                        <li>Tin cần chờ admin duyệt trước khi hiển thị</li>
+                        <li>Hiển thị phía sau các tin được hỗ trợ ưu tiên</li>
+                        <li>Bạn tự theo dõi – chưa có hệ thống hỗ trợ lan tỏa thêm</li>
+                    </ul>
+
+                    <div class="preview-highlight" id="preview-highlight">
+                        Bạn tự tìm món đồ mình mất. Muốn có AI, CTV và cộng đồng cùng tìm giúp? Chọn gói hỗ trợ.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<script>
+function togglePostType() {
+    const selected = document.querySelector('input[name="post_type"]:checked').value;
+    const titleInput = document.getElementById("title");
+    const titleExample = document.getElementById("title-example");
+    const lostSidebar = document.getElementById("lost-sidebar");
+    const foundSidebar = document.getElementById("found-sidebar");
+    const lostCard = document.getElementById("lost-card");
+    const foundCard = document.getElementById("found-card");
+    const stepDisplay = document.getElementById("step-display");
+    const stepBar = document.querySelector(".create-stepbar");
+    const nextBtn = document.getElementById("next-step-btn");
+    const submitBtn = document.getElementById("submit-btn");
+    const backBtn = document.getElementById("back-step-btn");
+
+    if (selected === "lost") {
+        titleInput.placeholder = "Nhập tiêu đề bài viết thất lạc";
+        titleExample.innerText = "VD: Rơi ví/giấy tờ tuỳ thân Nguyễn Văn A 2005 rơi ở nhà xe PTIT.";
+        document.getElementById("label_verification_hint").innerText = "Thông tin xác thực (Hiển thị công khai một phần)";
+        document.getElementById("hint_verification_hint").innerText = "Ghi một số đặc điểm hoặc vật đi kèm để người nhặt dễ nhận dạng.";
+        lostSidebar.style.display = "grid";
+        foundSidebar.style.display = "none";
+        lostCard.classList.add("active");
+        foundCard.classList.remove("active");
+        // Hiện stepbar và nút Tiếp tục cho bài lost
+        if (stepBar) stepBar.style.display = "flex";
+        if (stepDisplay) {
+            // Về lại step 1 nếu đang ở step 2
+            document.getElementById("step-basic").style.display = "block";
+            stepDisplay.style.display = "none";
+        }
+        if (nextBtn) nextBtn.style.display = "inline-block";
+        if (submitBtn) submitBtn.style.display = "none";
+        if (backBtn) backBtn.style.display = "none";
+    } else {
+        titleInput.placeholder = "Nhập tiêu đề bài viết nhặt được đồ";
+        titleExample.innerText = "VD: Nhặt được giấy tờ Nguyễn Văn B tại Hà Nội.";
+        document.getElementById("label_verification_hint").innerText = "Thông tin xác thực (Sẽ được ẩn bảo mật)";
+        document.getElementById("hint_verification_hint").innerText = "Ghi các đặc điểm để sau này đối chiếu với người mất. Thông tin này chỉ bạn và admin thấy.";
+        lostSidebar.style.display = "none";
+        foundSidebar.style.display = "grid";
+        foundCard.classList.add("active");
+        lostCard.classList.remove("active");
+        // Không có step 2 cho bài found — đăng luôn
+        if (stepBar) stepBar.style.display = "none";
+        if (stepDisplay) stepDisplay.style.display = "none";
+        document.getElementById("step-basic").style.display = "block";
+        if (nextBtn) nextBtn.style.display = "none";
+        if (submitBtn) submitBtn.style.display = "inline-block";
+        if (backBtn) backBtn.style.display = "none";
+    }
+}
+
+function togglePackage() {
+    const selected = document.querySelector('input[name="selected_package"]:checked').value;
+    const freeBox = document.getElementById("free-package-box");
+    const vipBox = document.getElementById("vip-package-box");
+    const amount = document.getElementById("payment-amount");
+    const content = document.getElementById("payment-content");
+    const username = "{{ session.get('username', '') }}";
+    const BANK_ACCT = "{{ site_bank_account }}";
+    const BANK_OWNER_ENC = encodeURIComponent("{{ site_bank_owner }}");
+
+    const packagePreview = document.getElementById("package-preview");
+
+    document.querySelectorAll(".package-card").forEach(card => {
+        card.classList.remove("active");
+    });
+
+    const activeCard = document.querySelector(`.package-card[data-package="${selected}"]`);
+    if (activeCard) activeCard.classList.add("active");
+
+    if (selected === "free") {
+        freeBox.style.display = "block";
+        vipBox.style.display = "none";
+        
+        packagePreview.innerHTML = `
+<div class="preview-card" style="border: 2px solid #cbd5e1; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+    <div style="background: #64748b; padding: 16px 20px; color: white;">
+        <h3 style="margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+            Tin Thường
+        </h3>
+    </div>
+    <div style="padding: 20px;">
+        <div style="margin-bottom: 16px;">
+            <div style="font-size: 24px; font-weight: bold; color: #16a34a; display: flex; align-items: baseline; gap: 8px;">
+                Miễn phí
+            </div>
+        </div>
+        
+        <div style="background: #f1f5f9; color: #475569; padding: 10px 14px; border-radius: 8px; font-weight: bold; font-size: 13px; margin-bottom: 20px;">
+            Hiển thị cơ bản
+        </div>
+        
+        <div style="font-weight: bold; color: #334155; margin-bottom: 12px; font-size: 14px;">Bao gồm:</div>
+        
+        <ul style="list-style-type: none; padding: 0; margin: 0 0 20px 0; display: flex; flex-direction: column; gap: 12px;">
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#16a34a" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Tin cần chờ admin duyệt trước khi hiển thị</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#16a34a" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Hiển thị phía sau các tin được hỗ trợ ưu tiên</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#16a34a" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Bạn tự theo dõi – chưa có hệ thống hỗ trợ lan tỏa thêm</span>
+            </li>
+        </ul>
+        
+        <div style="background: #f8fafc; padding: 14px; border-radius: 8px;">
+            <div style="font-size: 13px; color: #334155; line-height: 1.5;">Bạn tự tìm món đồ mình mất. Muốn có AI, CTV và cộng đồng cùng tìm giúp? Chọn gói hỗ trợ.</div>
+        </div>
+    </div>
+</div>`;
+    } else {
+        freeBox.style.display = "none";
+        vipBox.style.display = "block";
+
+        const qrImg = document.getElementById("vip-qr-img");
+        const amount2 = document.getElementById("payment-amount-2");
+        const content2 = document.getElementById("payment-content-2");
+
+        if (selected === "goi_1") {
+            amount.innerText = "10.000đ";
+            content.innerText = "LF-[ID]-goi_1-" + username;
+            if (amount2) amount2.innerText = "10.000đ";
+            if (content2) content2.innerText = "LF-[ID]-goi_1-" + username;
+            if (qrImg) qrImg.src = "https://img.vietqr.io/image/MB-" + BANK_ACCT + "-compact2.png?amount=10000&addInfo=LF-ID-goi_1-" + encodeURIComponent(username) + "&accountName=" + BANK_OWNER_ENC;
+
+            packagePreview.innerHTML = `
+<div class="preview-card" style="border: 2px solid #bfdbfe; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 10px 25px rgba(59,130,246,0.1);">
+    <div style="background: #3b82f6; padding: 16px 20px; color: white;">
+        <h3 style="margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+            Nổi Bật
+        </h3>
+    </div>
+    <div style="padding: 20px;">
+        <div style="margin-bottom: 16px;">
+            <div style="font-size: 24px; font-weight: bold; color: #16a34a; display: flex; align-items: baseline; gap: 8px;">
+                10.000 đ
+            </div>
+            <div style="color: #94a3b8; font-size: 13px; margin-top: 2px;">~3k/ngày</div>
+        </div>
+        
+        <div style="background: #eff6ff; color: #1d4ed8; padding: 10px 14px; border-radius: 8px; font-weight: bold; font-size: 13px; margin-bottom: 20px;">
+            Ghim tin lên hàng đầu 3 ngày
+        </div>
+        
+        <div style="font-weight: bold; color: #334155; margin-bottom: 12px; font-size: 14px;">Bao gồm:</div>
+        
+        <ul style="list-style-type: none; padding: 0; margin: 0 0 20px 0; display: flex; flex-direction: column; gap: 12px;">
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Tin được ưu tiên hiển thị sau khi admin duyệt — xem trước các tin thường</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Chia sẻ tin lên fanpage và 10+ hội nhóm tìm đồ</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Ưu tiên hiển thị trong danh sách — xếp trên các tin thường</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Hỗ trợ chỉnh sửa tin đăng để tối ưu bài đăng</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Ghim nổi bật 1 tuần với nhãn "Nổi Bật" — thu hút sự chú ý</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Hệ thống tự động thông báo nếu phát hiện thông tin có thể liên quan</span>
+            </li>
+        </ul>
+        
+        <div style="background: #eff6ff; padding: 14px; border-radius: 8px; margin-bottom: 12px;">
+            <div style="font-size: 12px; font-weight: bold; color: #1e3a8a; margin-bottom: 4px;">Tin được duyệt nhanh và hiển thị nổi bật</div>
+            <div style="font-size: 12px; color: #3b82f6; line-height: 1.5;">Nhiều người thấy tin hơn so với gói miễn phí, tăng cơ hội được liên hệ</div>
+        </div>
+        
+        <div style="background: #f8fafc; padding: 14px; border-radius: 8px;">
+            <div style="font-size: 12px; color: #3b82f6; line-height: 1.5;">Nâng lên gói <strong style="color:#1d4ed8;">Ưu Tiên</strong> để có thêm Bot AI quét tự động 24/7 và ưu tiên hiển thị cao hơn.</div>
+        </div>
+    </div>
+</div>`;
+        } else if (selected === "goi_2") {
+            amount.innerText = "20.000đ";
+            content.innerText = "LF-[ID]-goi_2-" + username;
+            if (amount2) amount2.innerText = "20.000đ";
+            if (content2) content2.innerText = "LF-[ID]-goi_2-" + username;
+            if (qrImg) qrImg.src = "https://img.vietqr.io/image/MB-" + BANK_ACCT + "-compact2.png?amount=20000&addInfo=LF-ID-goi_2-" + encodeURIComponent(username) + "&accountName=" + BANK_OWNER_ENC;
+
+            packagePreview.innerHTML = `
+<div class="preview-card" style="border: 2px solid #fed7aa; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 10px 25px rgba(249,115,22,0.08);">
+    <div style="background: #f97316; padding: 16px 20px; color: white;">
+        <h3 style="margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+            Ưu Tiên
+        </h3>
+    </div>
+    <div style="padding: 20px;">
+        <div style="margin-bottom: 16px;">
+            <div style="font-size: 24px; font-weight: bold; color: #16a34a; display: flex; align-items: baseline; gap: 8px;">
+                20.000 đ
+            </div>
+            <div style="color: #94a3b8; font-size: 13px; margin-top: 2px;">~4k/ngày</div>
+        </div>
+        
+        <div style="background: #fff7ed; color: #9a3412; padding: 10px 14px; border-radius: 8px; font-weight: bold; font-size: 13px; margin-bottom: 20px;">
+            Ghim tin lên hàng đầu 5 ngày
+        </div>
+        
+        <div style="font-weight: bold; color: #334155; margin-bottom: 12px; font-size: 14px;">Bao gồm:</div>
+        
+        <ul style="list-style-type: none; padding: 0; margin: 0 0 20px 0; display: flex; flex-direction: column; gap: 12px;">
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Bao gồm tất cả quyền lợi của gói Nổi Bật</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Chia sẻ tin lên fanpage và 20+ hội nhóm tìm đồ — phủ sóng rộng hơn</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Hệ thống tự động rà soát và đối chiếu với các tin mới 24/7</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Cam kết gia hạn thêm 2 ngày miễn phí nếu hết hạn mà chưa có phản hồi</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Nhãn "Ưu Tiên" — nổi bật hơn trong danh sách đề xuất</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Thông báo qua email và push notification khi có thông tin liên quan</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Hỗ trợ chỉnh sửa và tối ưu nội dung tin để dễ tìm thấy hơn</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Nhận báo cáo định kỳ về lượt tiếp cận và tình trạng tin đăng qua email</span>
+            </li>
+        </ul>
+        
+        <div style="background: #fff7ed; padding: 14px; border-radius: 8px; margin-bottom: 12px;">
+            <div style="font-size: 12px; font-weight: bold; color: #c2410c; margin-bottom: 4px;">Tất cả trong gói Nổi Bật + ưu tiên hiển thị, AI quét tự động</div>
+            <div style="font-size: 12px; color: #c2410c; line-height: 1.5;">Tin được đề xuất cho nhiều người hơn, AI tự quét và báo khi có kết quả trùng khớp</div>
+        </div>
+        
+        <div style="background: #f0fdf4; padding: 14px; border-radius: 8px;">
+            <div style="font-size: 12px; color: #166534; line-height: 1.5;">Hết hạn chưa có kết quả? <strong style="color:#15803d;">Gia hạn thêm 2 ngày miễn phí.</strong></div>
+        </div>
+    </div>
+</div>`;
+        } else if (selected === "goi_3") {
+            amount.innerText = "30.000đ";
+            content.innerText = "LF-[ID]-goi_3-" + username;
+            if (amount2) amount2.innerText = "30.000đ";
+            if (content2) content2.innerText = "LF-[ID]-goi_3-" + username;
+            if (qrImg) qrImg.src = "https://img.vietqr.io/image/MB-" + BANK_ACCT + "-compact2.png?amount=30000&addInfo=LF-ID-goi_3-" + encodeURIComponent(username) + "&accountName=" + BANK_OWNER_ENC;
+
+            packagePreview.innerHTML = `
+<div class="preview-card" style="border: 2px solid #e9d5ff; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 10px 25px rgba(168,85,247,0.08);">
+    <div style="background: #a855f7; padding: 16px 20px; color: white;">
+        <h3 style="margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+            <svg fill="currentColor" viewBox="0 0 20 20" width="20" height="20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+            Tìm Gấp
+        </h3>
+    </div>
+    <div style="padding: 20px;">
+        <div style="margin-bottom: 16px;">
+            <div style="font-size: 24px; font-weight: bold; color: #16a34a; display: flex; align-items: baseline; gap: 8px;">
+                30.000 đ
+            </div>
+            <div style="color: #94a3b8; font-size: 13px; margin-top: 2px;">~3k/ngày</div>
+        </div>
+        
+        <div style="background: #faf5ff; color: #7e22ce; padding: 10px 14px; border-radius: 8px; font-weight: bold; font-size: 13px; margin-bottom: 20px;">
+            Ghim tin lên hàng đầu 10 ngày
+        </div>
+        
+        <div style="font-weight: bold; color: #334155; margin-bottom: 12px; font-size: 14px;">Bao gồm:</div>
+        
+        <ul style="list-style-type: none; padding: 0; margin: 0 0 20px 0; display: flex; flex-direction: column; gap: 12px;">
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Bao gồm tất cả quyền lợi của gói Ưu Tiên</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Đội ngũ CTV chủ động chia sẻ và lan tỏa thông tin trên các nền tảng</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Đăng thông tin lên đa kênh: Facebook, TikTok, Zalo — tiếp cận nhiều cộng đồng</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Cam kết gia hạn thêm 7 ngày miễn phí nếu hết hạn mà chưa có phản hồi</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Nhãn "Tìm Gấp" — ghim vị trí nổi bật nhất trong danh sách</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Chia sẻ vào fanpage, hội nhóm tìm đồ và groups khu vực liên quan</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Thông báo ngay khi hệ thống phát hiện thông tin có thể liên quan</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Liên lạc nhanh khi có người cung cấp thông tin phù hợp</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="#22c55e" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Báo cáo tìm kiếm định kỳ qua email — cập nhật lượt tiếp cận và thông tin thu thập</span>
+            </li>
+        </ul>
+        
+        <div style="background: #faf5ff; padding: 14px; border-radius: 8px; margin-bottom: 12px;">
+            <div style="font-size: 12px; font-weight: bold; color: #7e22ce; margin-bottom: 4px;">Tất cả trong gói Ưu Tiên + chuyên viên chủ động tìm giúp</div>
+            <div style="font-size: 12px; color: #9333ea; line-height: 1.5;">Đội ngũ chuyên viên chủ động liên hệ, tìm kiếm và hỗ trợ bạn xuyên suốt</div>
+        </div>
+        
+        <div style="background: #f0fdf4; padding: 14px; border-radius: 8px;">
+            <div style="font-size: 12px; color: #166534; line-height: 1.5;">Hết hạn chưa có kết quả? <strong style="color:#15803d;">Gia hạn thêm 7 ngày miễn phí.</strong></div>
+        </div>
+    </div>
+</div>`;
+        }
+    }
+}
+
+function validateStep1() {
+    const title = document.getElementById("title").value.trim();
+    const description = document.getElementById("description").value.trim();
+    const category = document.getElementById("category").value.trim();
+    const eventDate = document.getElementById("event_date").value.trim();
+    const location = document.getElementById("location").value.trim();
+    const campus = document.getElementById("campus").value.trim();
+    const contact = document.getElementById("contact").value.trim();
+    const imageFile = document.getElementById("image").files.length > 0;
+    const sampleKey = document.getElementById("sample_image_key").value;
+
+    if (!title || !description || !category || !eventDate || !location || !campus || !contact) {
+        alert("Vui lòng nhập đầy đủ các trường bắt buộc trước khi sang bước tiếp theo.");
+        return false;
+    }
+    if (!imageFile && !sampleKey) {
+        alert("Vui lòng chọn ảnh minh họa hoặc chọn ảnh mẫu phù hợp.");
+        document.getElementById("drop-zone-wrap").scrollIntoView({ behavior: "smooth", block: "center" });
+        return false;
+    }
+    return true;
+}
+
+function goToStep2() {
+    if (!validateStep1()) return;
+
+    document.getElementById("step-basic").style.display = "none";
+    document.getElementById("step-display").style.display = "block";
+
+    document.getElementById("next-step-btn").style.display = "none";
+    document.getElementById("submit-btn").style.display = "inline-block";
+    document.getElementById("back-step-btn").style.display = "inline-block";
+
+    document.querySelector(".step-item-basic").classList.remove("active");
+    document.querySelector(".step-item-display").classList.add("active");
+
+    document.getElementById("lost-sidebar").style.display = "none";
+    document.getElementById("found-sidebar").style.display = "none";
+    document.getElementById("package-preview").style.display = "block";
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function goToStep1() {
+    document.getElementById("step-basic").style.display = "block";
+    document.getElementById("step-display").style.display = "none";
+
+    document.getElementById("next-step-btn").style.display = "inline-block";
+    document.getElementById("submit-btn").style.display = "none";
+    document.getElementById("back-step-btn").style.display = "none";
+
+    document.querySelector(".step-item-basic").classList.add("active");
+    document.querySelector(".step-item-display").classList.remove("active");
+
+    document.getElementById("package-preview").style.display = "none";
+    togglePostType();
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const dateInput = document.getElementById("event_date");
+    if (!dateInput.value) {
+        dateInput.value = new Date().toLocaleString("sv-SE", { timeZone: "Asia/Ho_Chi_Minh" }).split(' ')[0];
+    }
+    togglePostType();
+    togglePackage();
+    renderTags();
+
+    // Auto-select package and jump to step 2 if ?package= param present
+    const urlParams = new URLSearchParams(window.location.search);
+    const pkgParam = urlParams.get("package");
+    if (pkgParam && ["goi_1", "goi_2", "goi_3"].includes(pkgParam)) {
+        const radio = document.querySelector('input[name="selected_package"][value="' + pkgParam + '"]');
+        if (radio) {
+            radio.checked = true;
+            togglePackage();
+            goToStep2();
+        }
+    }
+
+    // ========== DRAG & DROP ==========
+    const dropZone = document.getElementById("drop-zone");
+    if (dropZone) {
+        dropZone.addEventListener("dragover", function(e) {
+            e.preventDefault();
+            dropZone.style.borderColor = "#16a34a";
+            dropZone.style.background = "#f0fdf4";
+        });
+        dropZone.addEventListener("dragleave", function() {
+            dropZone.style.borderColor = "#c7d4e1";
+            dropZone.style.background = "#f8fbff";
+        });
+        dropZone.addEventListener("drop", function(e) {
+            e.preventDefault();
+            dropZone.style.borderColor = "#c7d4e1";
+            dropZone.style.background = "#f8fbff";
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const fileInput = document.getElementById("image");
+                const dt = new DataTransfer();
+                dt.items.add(files[0]);
+                fileInput.files = dt.files;
+                previewImage(fileInput);
+            }
+        });
+        // Also attach to the wrapper so it catches drops anywhere in the zone
+        const dropWrap = document.getElementById("drop-zone-wrap");
+        if (dropWrap) {
+            dropWrap.addEventListener("dragover", function(e) { e.preventDefault(); });
+            dropWrap.addEventListener("drop", function(e) {
+                e.preventDefault();
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const fileInput = document.getElementById("image");
+                    const dt = new DataTransfer();
+                    dt.items.add(files[0]);
+                    fileInput.files = dt.files;
+                    previewImage(fileInput);
+                }
+            });
+        }
+    }
+});
+
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById("img-selected-thumb").innerHTML =
+                '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;">';
+            document.getElementById("img-selected-label").innerText = input.files[0].name;
+        };
+        reader.readAsDataURL(input.files[0]);
+        document.querySelectorAll(".sample-img-item").forEach(el => {
+            el.style.borderColor = "#e5e7eb"; el.style.background = "white";
+        });
+        document.getElementById("sample_image_key").value = "";
+        document.getElementById("drop-zone-wrap").style.display = "none";
+        document.getElementById("img-selected-wrap").style.display = "block";
+        analyzeImageWithAI(input.files[0]);
+    }
+}
+
+function analyzeImageWithAI(file) {
+    var banner = document.getElementById("ai-hint-banner");
+    if (banner) banner.remove();
+
+    var formData = new FormData();
+    formData.append("image", file);
+
+    var thumb = document.getElementById("img-selected-thumb");
+    var origContent = thumb.innerHTML;
+    thumb.innerHTML = origContent + '<div style="position:absolute;inset:0;background:rgba(255,255,255,0.8);display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:12px;color:#374151;font-weight:600;">🤖 AI đang phân tích...</div>';
+    thumb.style.position = "relative";
+
+    fetch("/api/analyze-image", { method: "POST", body: formData })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            thumb.style.position = "";
+            thumb.innerHTML = origContent + (thumb.querySelector("img") ? "" : "");
+            // Re-render preview
+            var rd = new FileReader();
+            rd.onload = function(e) {
+                thumb.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;">';
+            };
+            rd.readAsDataURL(file);
+
+            if (data.error) return;
+
+            // Auto-fill category
+            var catSel = document.getElementById("category");
+            if (catSel && data.category) {
+                var opts = Array.from(catSel.options);
+                var match = opts.find(o => data.category.toLowerCase().includes(o.value.toLowerCase()) || o.value.toLowerCase().includes(data.category.split("/")[0].toLowerCase()));
+                if (match) catSel.value = match.value;
+            }
+
+            // Show AI hint banner
+            var wrap = document.getElementById("img-selected-wrap");
+            var hint = document.createElement("div");
+            hint.id = "ai-hint-banner";
+            hint.style.cssText = "margin-top:10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 14px;font-size:13px;color:#15803d;";
+            hint.innerHTML = '<div style="font-weight:700;margin-bottom:4px;">🤖 AI gợi ý</div>'
+                + (data.category ? '<div>📂 Danh mục: <strong>' + data.category + '</strong></div>' : '')
+                + (data.description_hint ? '<div style="margin-top:4px;color:#374151;">' + data.description_hint + '</div>' : '')
+                + (data.keywords ? '<div style="margin-top:4px;color:#64748b;font-size:12px;">Từ khóa: ' + data.keywords + '</div>' : '')
+                + '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">'
+                + (data.description_hint ? '<button type="button" onclick="applyAIDesc(this)" data-desc="' + data.description_hint.replace(/"/g,"&quot;") + '" style="font-size:11px;padding:4px 10px;border:1px solid #16a34a;background:white;color:#16a34a;border-radius:6px;cursor:pointer;">+ Thêm vào mô tả</button>' : '')
+                + '<button type="button" onclick="this.closest(\'#ai-hint-banner\')||this.parentElement.parentElement.remove()" style="font-size:11px;padding:4px 10px;border:1px solid #e2e8f0;background:white;color:#94a3b8;border-radius:6px;cursor:pointer;">Bỏ qua</button>'
+                + '</div>';
+            if (wrap) wrap.appendChild(hint);
+        })
+        .catch(function() {
+            thumb.style.position = "";
+        });
+}
+
+function applyAIDesc(btn) {
+    var desc = btn.getAttribute("data-desc");
+    var ta = document.getElementById("description");
+    if (ta && desc) {
+        ta.value = ta.value ? ta.value + "\n" + desc : desc;
+        btn.textContent = "✓ Đã thêm";
+        btn.disabled = true;
+    }
+}
+
+function selectSampleImg(el, key) {
+    document.querySelectorAll(".sample-img-item").forEach(function(item) {
+        item.style.borderColor = "#e5e7eb"; item.style.background = "white";
+    });
+    el.style.borderColor = "#16a34a";
+    el.style.background = "#f0fdf4";
+    document.getElementById("sample_image_key").value = key;
+    const emojiMap = { cccd: "🪪", wallet: "👛", key: "🔑", phone: "📱", student_card: "🎓", bag: "🎒" };
+    const labelMap = { cccd: "Thẻ căn cước/CMND", wallet: "Ví/Túi tiền", key: "Chìa khóa", phone: "Điện thoại/Thiết bị", student_card: "Thẻ sinh viên", bag: "Balo/Túi xách" };
+    document.getElementById("img-selected-thumb").innerHTML = '<div style="font-size:36px;">' + (emojiMap[key] || "📦") + '</div>';
+    document.getElementById("img-selected-label").innerText = (labelMap[key] || key) + " (ảnh mẫu)";
+    document.getElementById("image").value = "";
+    document.getElementById("drop-zone-wrap").style.display = "none";
+    document.getElementById("img-selected-wrap").style.display = "block";
+}
+
+function clearImageSelection() {
+    document.querySelectorAll(".sample-img-item").forEach(function(item) {
+        item.style.borderColor = "#e5e7eb"; item.style.background = "white";
+    });
+    document.getElementById("sample_image_key").value = "";
+    document.getElementById("image").value = "";
+    document.getElementById("img-selected-thumb").innerHTML = "";
+    document.getElementById("img-selected-label").innerText = "";
+    document.getElementById("img-selected-wrap").style.display = "none";
+    document.getElementById("drop-zone-wrap").style.display = "block";
+    const zone = document.getElementById("drop-zone");
+    if (zone) { zone.style.borderColor = "#c7d4e1"; zone.style.background = "#f8fbff"; }
+}
+
+function copyInlineText(text, btn) {
+    navigator.clipboard.writeText(text).then(function() {
+        var orig = btn.innerHTML;
+        btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+        setTimeout(function() { btn.innerHTML = orig; }, 1800);
+    });
+}
+
+function previewProof(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById("proof-thumb").innerHTML =
+                '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;">';
+            document.getElementById("proof-label").innerText = input.files[0].name;
+        };
+        reader.readAsDataURL(input.files[0]);
+        document.getElementById("proof-upload-wrap").style.display = "none";
+        document.getElementById("proof-selected-wrap").style.display = "block";
+        const zone = document.getElementById("proof-drop-zone");
+        if (zone) { zone.style.borderColor = "#fed7aa"; zone.style.background = "#fff"; }
+    }
+}
+
+function clearProof() {
+    document.getElementById("payment_proof").value = "";
+    document.getElementById("proof-thumb").innerHTML = "";
+    document.getElementById("proof-label").innerText = "";
+    document.getElementById("proof-upload-wrap").style.display = "block";
+    document.getElementById("proof-selected-wrap").style.display = "none";
+}
+
+function validateAndSubmit() {
+    const selectedPkg = document.querySelector('input[name="selected_package"]:checked');
+    if (selectedPkg && selectedPkg.value !== "free") {
+        const proofFile = document.getElementById("payment_proof").files.length > 0;
+        if (!proofFile) {
+            alert("Vui lòng tải lên ảnh xác nhận chuyển khoản trước khi đăng bài.");
+            document.getElementById("proof-drop-zone").scrollIntoView({ behavior: "smooth", block: "center" });
+            document.getElementById("proof-drop-zone").style.borderColor = "#ef4444";
+            setTimeout(function() {
+                document.getElementById("proof-drop-zone").style.borderColor = "#fed7aa";
+            }, 2500);
+            return;
+        }
+    }
+    document.querySelector("form").submit();
+}
+
+// ── TAG SYSTEM ──
+var _tags = (function(){
+    var saved = "{{ form_data.get('tags','') }}";
+    return saved ? saved.split(',').map(function(t){return t.trim();}).filter(Boolean) : [];
+})();
+var MAX_TAGS = 3;
+
+function renderTags() {
+    var chips = document.getElementById('tag-chips');
+    chips.innerHTML = '';
+    _tags.forEach(function(t, i) {
+        var chip = document.createElement('span');
+        chip.style.cssText = 'display:inline-flex;align-items:center;gap:5px;background:#dcfce7;color:#15803d;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;';
+        chip.innerHTML = t + '<button type="button" onclick="removeTag(' + i + ')" style="background:none;border:none;cursor:pointer;color:#16a34a;font-size:14px;line-height:1;padding:0;">×</button>';
+        chips.appendChild(chip);
+    });
+    document.getElementById('tags-hidden').value = _tags.join(',');
+}
+
+function addTagValue(val) {
+    val = val.trim().toLowerCase();
+    if (!val || _tags.length >= MAX_TAGS || _tags.indexOf(val) !== -1) return;
+    _tags.push(val);
+    renderTags();
+}
+
+function addTag() {
+    var inp = document.getElementById('tag-input');
+    var val = inp.value.trim().toLowerCase().replace(/,/g, '');
+    addTagValue(val);
+    inp.value = '';
+}
+
+function removeTag(i) {
+    _tags.splice(i, 1);
+    renderTags();
+}
+
+document.getElementById('tag-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        addTag();
+    }
+});
+</script>
+{% endblock %}

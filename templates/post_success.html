@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Đăng bài thành công{% endblock %}
+
+{% block content %}
+<div style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 24px;">
+    <div style="background: white; border-radius: 20px; box-shadow: 0 8px 40px rgba(0,0,0,0.12); padding: 40px 36px; max-width: 520px; width: 100%; position: relative;">
+
+        <!-- Close button -->
+        <a href="{{ url_for('my_posts') }}" style="position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 8px; border: 1px solid #e5e7eb; background: white; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 18px; text-decoration: none; line-height: 1;">&times;</a>
+
+        <!-- Success Icon -->
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div style="width: 70px; height: 70px; background: #dcfce7; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#16a34a" stroke-width="2.5" width="36" height="36">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h1 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0 0 8px;">Bài đăng đã được tạo thành công!</h1>
+            <p style="font-size: 14px; color: #64748b; line-height: 1.6; margin: 0;">
+                Tin đăng sẽ được kiểm duyệt và hiển thị công khai.<br>
+                Với gói trả phí, tin sẽ được ưu tiên xét duyệt nhanh hơn.
+            </p>
+        </div>
+
+        <!-- Status badge -->
+        <div style="text-align: center; margin-bottom: 22px;">
+            {% if post['package_key'] %}
+            <span style="display: inline-flex; align-items: center; gap: 7px; background: #eff6ff; color: #1d4ed8; padding: 8px 18px; border-radius: 999px; font-size: 14px; font-weight: 700;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; display: inline-block;"></span>
+                Chờ admin duyệt &bull; Ưu tiên theo gói {{ post['package_key']|upper }}
+            </span>
+            {% else %}
+            <span style="display: inline-flex; align-items: center; gap: 7px; background: #fef3c7; color: #92400e; padding: 8px 18px; border-radius: 999px; font-size: 14px; font-weight: 700;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
+                Đang chờ admin duyệt
+            </span>
+            {% endif %}
+        </div>
+
+        <!-- Post info mini -->
+        <div style="background: #f8fafc; border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; display: flex; gap: 12px; align-items: center;">
+            <div style="font-size: 28px; flex-shrink: 0;">
+                {{ '🔍' if post['post_type'] == 'lost' else '📦' }}
+            </div>
+            <div style="min-width: 0;">
+                <div style="font-size: 13px; font-weight: 800; color: {{ '#ef4444' if post['post_type'] == 'lost' else '#16a34a' }}; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    {{ 'Mất đồ' if post['post_type'] == 'lost' else 'Nhặt được' }}
+                </div>
+                <div style="font-size: 15px; font-weight: 700; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ post['title'] }}</div>
+                <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">📍 {{ post['city'] or post['location'] or 'Không rõ' }}</div>
+            </div>
+        </div>
+
+        <!-- Thông tin thêm về gói -->
+        {% if post['package_key'] %}
+        <div style="background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 14px; padding: 18px; margin-bottom: 16px;">
+            <p style="font-size: 14px; font-weight: 800; color: #0f172a; margin: 0 0 8px;">📦 Bài đã đăng ký gói {{ post['package_key']|upper }}</p>
+            <p style="font-size: 13px; color: #374151; margin: 0; line-height: 1.6;">
+                Sau khi admin duyệt, bài sẽ được <strong>ưu tiên hiển thị</strong> theo đúng mức gói đã chọn.
+                Vui lòng chuyển khoản đúng nội dung để kích hoạt gói.
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- View post button -->
+        <a href="{{ url_for('post_detail', post_id=post['id']) }}" style="display: block; text-align: center; background: #16a34a; color: white; padding: 14px; border-radius: 10px; font-weight: 800; font-size: 15px; text-decoration: none; margin-bottom: 14px;">
+            Xem bài đăng &rarr;
+        </a>
+
+        <!-- My posts link -->
+        <a href="{{ url_for('my_posts') }}" style="display: block; text-align: center; background: #f1f5f9; color: #475569; padding: 12px; border-radius: 10px; font-weight: 700; font-size: 14px; text-decoration: none; margin-bottom: 16px;">
+            Quản lý bài đăng của tôi
+        </a>
+
+        <!-- Warning -->
+        <div style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 10px; padding: 12px 14px;">
+            <p style="font-size: 12px; color: #be123c; margin: 0; line-height: 1.6;">
+                <strong>⚠️ Cảnh báo lừa đảo:</strong> Tuyệt đối không chuyển tiền chuộc cho bất kỳ ai qua điện thoại hoặc tin nhắn. Chỉ làm việc qua chính trang web này.
+            </p>
+        </div>
+
+        <!-- Footer note -->
+        <p style="text-align: center; font-size: 12px; color: #94a3b8; margin: 14px 0 0;">
+            Cảm ơn bạn đã sử dụng hệ thống PTIT Lost & Found!
+        </p>
+
+    </div>
+</div>
+{% endblock %}

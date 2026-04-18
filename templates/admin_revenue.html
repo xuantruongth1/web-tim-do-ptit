@@ -1,0 +1,225 @@
+{% extends "base_admin.html" %}
+{% block admin_title %}Doanh thu{% endblock %}
+
+{% block admin_content %}
+<div class="adm-page-head">
+    <h1>📈 Thống kê Doanh thu</h1>
+    <p>Theo dõi doanh thu VIP theo ngày, tuần, tháng và theo gói.</p>
+</div>
+
+<div class="adm-stats" style="margin-bottom:24px;">
+    <div class="adm-stat-card" style="border-left-color:#16a34a;">
+        <h3 style="color:#16a34a;font-size:20px;">{{ "{:,}".format(total_revenue) }}đ</h3>
+        <p>💰 Tổng doanh thu</p>
+    </div>
+    <div class="adm-stat-card" style="border-left-color:#3b82f6;">
+        <h3>{{ total_count }}</h3><p>✅ Giao dịch thành công</p>
+    </div>
+    <div class="adm-stat-card" style="border-left-color:#f59e0b;">
+        <h3>{{ pending_count }}</h3><p>⏳ Đang chờ duyệt</p>
+    </div>
+    <div class="adm-stat-card" style="border-left-color:#8b5cf6;">
+        <h3 style="font-size:18px;">{{ "{:,}".format((total_revenue // total_count) if total_count else 0) }}đ</h3>
+        <p>📊 Trung bình / giao dịch</p>
+    </div>
+</div>
+
+<!-- Filter bar -->
+<div class="adm-card" style="margin-bottom:20px;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <span style="font-size:12px;font-weight:700;color:#94a3b8;">Xem theo:</span>
+        <a href="?period=day{% if from_dt %}&from={{ from_dt }}{% endif %}{% if to_dt %}&to={{ to_dt }}{% endif %}"
+           class="adm-btn adm-btn-sm {{ 'adm-btn-primary' if period == 'day' else 'adm-btn-ghost' }}">Ngày</a>
+        <a href="?period=week{% if from_dt %}&from={{ from_dt }}{% endif %}{% if to_dt %}&to={{ to_dt }}{% endif %}"
+           class="adm-btn adm-btn-sm {{ 'adm-btn-primary' if period == 'week' else 'adm-btn-ghost' }}">Tuần</a>
+        <a href="?period=month{% if from_dt %}&from={{ from_dt }}{% endif %}{% if to_dt %}&to={{ to_dt }}{% endif %}"
+           class="adm-btn adm-btn-sm {{ 'adm-btn-primary' if period == 'month' else 'adm-btn-ghost' }}">Tháng</a>
+        <span style="color:#334155;">|</span>
+        <form method="GET" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input type="hidden" name="period" value="{{ period }}">
+            <span style="font-size:12px;color:#94a3b8;">Từ</span>
+            <input type="date" name="from" value="{{ from_dt }}" class="adm-form-input" style="width:140px;padding:6px 10px;font-size:13px;">
+            <span style="font-size:12px;color:#94a3b8;">đến</span>
+            <input type="date" name="to" value="{{ to_dt }}" class="adm-form-input" style="width:140px;padding:6px 10px;font-size:13px;">
+            <button type="submit" class="adm-btn adm-btn-sm adm-btn-primary">Lọc</button>
+            {% if from_dt or to_dt %}
+            <a href="{{ url_for('admin_revenue', period=period) }}" class="adm-btn adm-btn-sm adm-btn-ghost">Xóa</a>
+            {% endif %}
+        </form>
+        <a href="{{ url_for('admin_export_revenue_csv') }}" class="adm-btn adm-btn-sm adm-btn-ghost" style="margin-left:auto;">📥 Xuất CSV</a>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start;">
+
+<!-- Chart + period table -->
+<div class="adm-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div class="adm-card-title" style="margin:0;">Doanh thu theo {{ period_lbl }}</div>
+        <div style="font-size:12px;color:#94a3b8;">{{ by_period_asc|length }} kỳ gần nhất</div>
+    </div>
+    {% if by_period_asc %}
+    <canvas id="revenueChart" height="240"></canvas>
+    {% else %}
+    <div style="height:200px;display:flex;align-items:center;justify-content:center;color:#94a3b8;flex-direction:column;gap:8px;">
+        <div style="font-size:40px;">📊</div>
+        <div style="font-size:13px;">Chưa có dữ liệu trong khoảng thời gian này</div>
+    </div>
+    {% endif %}
+
+    {% if by_period %}
+    <div style="margin-top:20px;border-top:1px solid #1e293b;padding-top:16px;">
+        <table class="adm-table">
+            <thead>
+                <tr>
+                    <th>{{ period_lbl }}</th>
+                    <th style="text-align:right;">Giao dịch</th>
+                    <th style="text-align:right;">Doanh thu</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in by_period %}
+            <tr>
+                <td style="font-weight:600;">{{ row.period_key }}</td>
+                <td style="text-align:right;color:#94a3b8;">{{ row.cnt }}</td>
+                <td style="text-align:right;font-weight:700;color:#16a34a;">{{ "{:,}".format(row.total) }}đ</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Package breakdown -->
+<div class="adm-card">
+    <div class="adm-card-title">Theo gói VIP</div>
+    {% set pkg_colors = {'goi_1': '#3b82f6', 'goi_2': '#f97316', 'goi_3': '#a855f7'} %}
+    {% if by_package %}
+    {% set max_rev = [by_package[0]['total'], 1]|max %}
+    {% for row in by_package %}
+    {% set color = pkg_colors.get(row.package_key, '#16a34a') %}
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #1e293b;">
+        <div style="min-width:85px;">
+            <div style="font-size:12px;font-weight:700;color:#e2e8f0;">
+                {% set pkg = vip_packages.get(row.package_key, {}) %}
+                ⚡ {{ pkg.get('name', row.package_name or row.package_key or 'Khác') }}
+            </div>
+            <div style="font-size:11px;color:#94a3b8;">{{ row.cnt }} giao dịch</div>
+        </div>
+        <div style="flex:1;background:#1e293b;border-radius:999px;height:8px;overflow:hidden;">
+            <div style="width:{{ ((row['total'] / max_rev) * 100)|int if max_rev else 0 }}%;background:{{ color }};height:100%;border-radius:999px;"></div>
+        </div>
+        <div style="min-width:70px;text-align:right;font-size:12px;font-weight:700;color:{{ color }};">
+            {{ "{:,}".format(row.total) }}đ
+        </div>
+    </div>
+    {% endfor %}
+
+    <div style="margin-top:16px;border-top:1px solid #1e293b;padding-top:14px;">
+        <table class="adm-table">
+            <thead>
+                <tr>
+                    <th>Gói</th>
+                    <th style="text-align:right;">SL</th>
+                    <th style="text-align:right;">Tổng</th>
+                    <th style="text-align:right;">%</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in by_package %}
+            {% set pkg = vip_packages.get(row.package_key, {}) %}
+            <tr>
+                <td style="font-weight:600;">{{ pkg.get('name', row.package_key or 'Khác') }}</td>
+                <td style="text-align:right;color:#94a3b8;">{{ row.cnt }}</td>
+                <td style="text-align:right;font-weight:700;color:#16a34a;">{{ "{:,}".format(row.total) }}đ</td>
+                <td style="text-align:right;color:#94a3b8;">{{ "%.0f"|format((row.total / total_revenue * 100) if total_revenue else 0) }}%</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="border-top:2px solid #334155;">
+                    <td style="font-weight:800;color:#e2e8f0;">Tổng</td>
+                    <td style="text-align:right;font-weight:700;">{{ total_count }}</td>
+                    <td style="text-align:right;font-weight:900;color:#16a34a;">{{ "{:,}".format(total_revenue) }}đ</td>
+                    <td style="text-align:right;color:#94a3b8;">100%</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:30px;color:#94a3b8;font-size:13px;">Chưa có dữ liệu</div>
+    {% endif %}
+</div>
+
+</div>
+
+{% block admin_extra_js %}
+{% if by_period_asc %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+    var labels = {{ by_period_asc | map(attribute='period_key') | list | tojson }};
+    var revenues = {{ by_period_asc | map(attribute='total') | list | tojson }};
+    var counts = {{ by_period_asc | map(attribute='cnt') | list | tojson }};
+    var ctx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Doanh thu (đ)',
+                data: revenues,
+                backgroundColor: 'rgba(22,163,74,0.2)',
+                borderColor: '#16a34a',
+                borderWidth: 2,
+                borderRadius: 6,
+                yAxisID: 'y'
+            }, {
+                label: 'Số giao dịch',
+                data: counts,
+                type: 'line',
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59,130,246,0.08)',
+                borderWidth: 2,
+                pointRadius: 4,
+                pointBackgroundColor: '#3b82f6',
+                tension: 0.3,
+                fill: false,
+                yAxisID: 'y2'
+            }]
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { position: 'top', labels: { font: { size: 11 }, color: '#94a3b8' } },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            if (ctx.datasetIndex === 0) return ' ' + ctx.parsed.y.toLocaleString('vi-VN') + 'đ';
+                            return ' ' + ctx.parsed.y + ' giao dịch';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    type: 'linear', position: 'left',
+                    ticks: { font: { size: 10 }, color: '#64748b', callback: function(v) { return (v/1000) + 'k'; } },
+                    grid: { color: '#1e293b' }
+                },
+                y2: {
+                    type: 'linear', position: 'right',
+                    grid: { drawOnChartArea: false },
+                    ticks: { font: { size: 10 }, color: '#64748b' }
+                },
+                x: { ticks: { font: { size: 10 }, color: '#64748b' }, grid: { display: false } }
+            }
+        }
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}
+{% endblock %}

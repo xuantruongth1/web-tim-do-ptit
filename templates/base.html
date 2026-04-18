@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() if csrf_token is defined else '' }}">
+    <title>{% block title %}PTIT Lost & Found{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <!-- ── ROW 1: Logo / Search / Actions ── -->
+        <div class="topbar-row1">
+
+            <a href="{{ url_for('home') }}" class="brand-link">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="brand-logo-img">
+                <span class="brand-name">TIMDOPTIT.COM</span>
+            </a>
+
+            <form action="{{ url_for('search') }}" method="GET" class="search-main">
+                <svg class="search-main-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="text" name="keyword" placeholder="Tìm đồ vật của bạn..." />
+            </form>
+
+            <div class="topbar-right" id="navActions">
+                {% if session.get('user_id') %}
+                    <a href="{{ url_for('create_post') }}" class="btn-top-post">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                        Đăng tin
+                    </a>
+                    <a href="{{ url_for('my_posts') }}" class="btn-top-manage">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        Quản lý tin
+                    </a>
+
+                    <!-- Chat Button -->
+                    <a href="{{ url_for('my_chats') }}" class="btn-top-manage" title="Tin nhắn" style="position:relative;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        Tin nhắn
+                        {% if unread_chat_count > 0 %}
+                        <span style="position:absolute;top:-5px;right:-5px;background:#ef4444;color:white;border-radius:999px;font-size:10px;font-weight:800;min-width:17px;height:17px;display:flex;align-items:center;justify-content:center;padding:0 3px;">{{ unread_chat_count }}</span>
+                        {% endif %}
+                    </a>
+
+                    <!-- Notification Bell -->
+                    <div class="notif-wrapper" id="notifWrapper">
+                        <button class="notif-bell-btn" id="notifBtn" type="button" onclick="toggleNotifPanel(event)" aria-label="Thông báo">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                            {% if pending_claims_count + unread_notif_count > 0 %}
+                            <span class="notif-badge">{{ pending_claims_count + unread_notif_count }}</span>
+                            {% endif %}
+                        </button>
+                        <div class="notif-dropdown" id="notifDropdown">
+                            <div class="notif-dropdown-header">
+                                <strong>🔔 Thông báo</strong>
+                                <a href="{{ url_for('my_received_claims') }}">Xem nhận đồ →</a>
+                            </div>
+                            {% if notif_list %}
+                                {% for n in notif_list %}
+                                <a href="{{ n['link'] }}" class="notif-item" style="text-decoration:none;color:inherit;">
+                                    <div class="notif-item-avatar" style="background:#3b82f6;font-size:14px;">💬</div>
+                                    <div class="notif-item-content">
+                                        <div class="notif-item-title">{{ n['message'] }}</div>
+                                        <div class="notif-item-time">{{ n['created_at'] | time_ago }}</div>
+                                    </div>
+                                    {% if not n['is_read'] %}<span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;flex-shrink:0;align-self:center;"></span>{% endif %}
+                                </a>
+                                {% endfor %}
+                            {% endif %}
+                            {% if pending_claims_list %}
+                                {% for c in pending_claims_list %}
+                                <div class="notif-item">
+                                    <div class="notif-item-avatar">{{ c['claimer_name'][0] | upper }}</div>
+                                    <div class="notif-item-content">
+                                        <div class="notif-item-title">
+                                            <strong>{{ c['claimer_name'] }}</strong> muốn nhận đồ
+                                            {% if c['status'] == 'matched' %}
+                                            <span style="background:#16a34a;color:white;border-radius:4px;font-size:10px;padding:1px 5px;margin-left:4px;font-weight:700;">AI KHỚP</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="notif-item-sub">📦 {{ c['found_title'][:45] }}{% if c['found_title']|length > 45 %}…{% endif %}</div>
+                                        <div class="notif-item-time">{{ c['created_at'] | time_ago }}</div>
+                                    </div>
+                                    <button class="notif-reply-btn"
+                                        data-name="{{ c['claimer_name'] | e }}"
+                                        data-item="{{ c['found_title'] | e }}"
+                                        data-desc="{{ (c['claim_description'] or '') | e }}"
+                                        data-score="{{ c['ai_score'] or 0 }}"
+                                        data-confirm="{{ url_for('confirm_claim_owner', claim_id=c['id']) }}"
+                                        data-reject="{{ url_for('reject_claim_owner', claim_id=c['id']) }}"
+                                        onclick="openClaimReply(this)">Trả lời</button>
+                                </div>
+                                {% endfor %}
+                            {% endif %}
+                            {% if not notif_list and not pending_claims_list %}
+                                <div class="notif-empty">
+                                    <div style="font-size:28px;margin-bottom:6px;">🔔</div>
+                                    Không có thông báo mới
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- User chip -->
+                    <div class="user-chip-wrap">
+                        <a href="{{ url_for('profile') }}" class="user-chip" title="Hồ sơ của tôi">
+                            {% if session.get('avatar') %}
+                                <img src="{{ url_for('static', filename='uploads/avatars/' ~ session.get('avatar')) }}"
+                                     class="user-chip-avatar" alt="avatar"
+                                     style="border-radius:50%;object-fit:cover;width:28px;height:28px;">
+                            {% else %}
+                                <div class="user-chip-avatar">{{ session.get('full_name', '?')[0] | upper }}</div>
+                            {% endif %}
+                            <span class="user-chip-name">{{ session.get('full_name') }}</span>
+                        </a>
+                        {% if session.get('role') == 'admin' %}
+                        <a class="btn admin" href="{{ url_for('admin_dashboard') }}" style="padding:7px 12px;font-size:12px;">Admin</a>
+                        {% endif %}
+                        <a href="{{ url_for('logout') }}" class="btn-top-logout" title="Đăng xuất">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        </a>
+                    </div>
+                {% else %}
+                    <a class="btn-top-login" href="{{ url_for('login') }}">Đăng nhập</a>
+                    <a class="btn-top-post" href="{{ url_for('register') }}">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                        Đăng ký
+                    </a>
+                {% endif %}
+            </div>
+
+            <!-- Hamburger (mobile) -->
+            <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+
+        <!-- ── ROW 2: Navigation ── -->
+        <div class="topbar-row2" id="mainNav">
+            <nav class="main-nav-inner">
+                <a href="{{ url_for('home') }}" class="nav-link {% if request.endpoint == 'home' %}nav-link-active{% endif %}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    Trang chủ
+                </a>
+                <a href="{{ url_for('premium_posts') }}" class="nav-link {% if request.endpoint == 'premium_posts' %}nav-link-active{% endif %}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Tin đặc quyền
+                    <span class="nav-badge-premium">PREMIUM</span>
+                </a>
+                <a href="{{ url_for('lost_posts') }}" class="nav-link {% if request.endpoint == 'lost_posts' %}nav-link-active{% endif %}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    Tin mất & thất lạc
+                </a>
+                <a href="{{ url_for('found_posts') }}" class="nav-link {% if request.endpoint == 'found_posts' %}nav-link-active{% endif %}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Nhặt được & tìm thấy
+                </a>
+                <a href="{{ url_for('pricing') }}" class="nav-link {% if request.endpoint == 'pricing' %}nav-link-active{% endif %}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    Gói dịch vụ
+                    <span class="nav-badge-vip">VIP</span>
+                </a>
+                <a href="{{ url_for('match') }}" class="nav-link {% if request.endpoint == 'match' %}nav-link-active{% endif %}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>
+                    Gợi ý AI
+                    {% if ai_enabled %}<span class="ai-badge">AI</span>{% endif %}
+                </a>
+                <a href="{{ url_for('support_project') }}" class="nav-link {% if request.endpoint == 'support_project' %}nav-link-active{% endif %}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    Hỗ trợ dự án
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    {% if active_announcement %}
+    {% set ann_styles = {'info':'background:#1d4ed8;color:#dbeafe;','warning':'background:#92400e;color:#fef3c7;','danger':'background:#991b1b;color:#fee2e2;','success':'background:#166534;color:#dcfce7;'} %}
+    <div style="{{ ann_styles.get(active_announcement['type'], ann_styles['info']) }}padding:10px 20px;text-align:center;font-size:13px;font-weight:600;position:relative;">
+        <strong>{{ active_announcement["title"] }}</strong>
+        {% if active_announcement["content"] %} — {{ active_announcement["content"] }}{% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ====== CLAIM REPLY MODAL ====== -->
+    <div class="reply-modal-overlay" id="replyModalOverlay" onclick="if(event.target===this)closeReplyModal()">
+        <div class="reply-modal">
+            <div class="reply-modal-header">
+                <div>
+                    <div class="reply-modal-title" id="replyModalTitle"></div>
+                    <div class="reply-modal-sub" id="replyModalSub"></div>
+                </div>
+                <button class="reply-modal-close" onclick="closeReplyModal()">×</button>
+            </div>
+            <div class="reply-modal-body">
+                <div id="replyScoreWrap" class="reply-score-wrap"></div>
+                <div class="reply-desc-label">Nội dung xác minh của người dùng:</div>
+                <div class="reply-desc" id="replyDesc"></div>
+            </div>
+            <div class="reply-modal-footer">
+                <form id="replyConfirmForm" method="POST" style="flex:1;">
+                    <button type="button" class="btn primary" style="width:100%;padding:11px;font-size:14px;"
+                        onclick="adminConfirm('Xác nhận đây là chủ đúng?', document.getElementById('replyConfirmForm'), {icon:'✅',okLabel:'Xác nhận',okColor:'#16a34a',sub:'Người này sẽ thấy thông tin liên hệ của bạn.'})">✅ Xác nhận đúng chủ</button>
+                </form>
+                <form id="replyRejectForm" method="POST" style="flex:1;">
+                    <button type="button" class="btn ghost" style="width:100%;padding:11px;font-size:14px;color:#ef4444;border-color:#fca5a5;"
+                        onclick="adminConfirm('Từ chối yêu cầu này?', document.getElementById('replyRejectForm'), {danger:true,icon:'❌',okLabel:'Từ chối'})">❌ Từ chối</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <main class="page">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-wrap" id="flashWrap">
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">
+                            {{ message }}
+                            <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-col">
+                <h3>PTIT Lost & Found</h3>
+                <p>Nền tảng hỗ trợ tìm kiếm và trao trả đồ thất lạc trong cộng đồng sinh viên.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Danh mục</h4>
+                <ul>
+                    <li><a href="{{ url_for('search', keyword='ví') }}">Ví / Giấy tờ</a></li>
+                    <li><a href="{{ url_for('search', keyword='điện thoại') }}">Thiết bị điện tử</a></li>
+                    <li><a href="{{ url_for('search', keyword='thú cưng') }}">Thú cưng</a></li>
+                    <li><a href="{{ url_for('search', keyword='chìa khóa') }}">Đồ dùng cá nhân</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Hỗ trợ</h4>
+                <ul>
+                    <li><a href="{{ url_for('create_post') }}">Hướng dẫn đăng tin</a></li>
+                    <li><a href="{{ url_for('pricing') }}">Gói dịch vụ</a></li>
+                    <li><a href="{{ url_for('match') }}">Gợi ý AI</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Liên hệ</h4>
+                <p>📞 {{ site_phone }}</p>
+                <p>📧 {{ site_email }}</p>
+                <p>📍 {{ site_address }}</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 PTIT Lost & Found. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Auto-dismiss flash messages
+        (function () {
+            var wrap = document.getElementById('flashWrap');
+            if (!wrap) return;
+            setTimeout(function () {
+                wrap.querySelectorAll('.flash').forEach(function (el) {
+                    el.style.transition = 'opacity 0.5s';
+                    el.style.opacity = '0';
+                    setTimeout(function () { el.remove(); }, 500);
+                });
+            }, 5000);
+        })();
+
+        // Hamburger menu toggle
+        (function () {
+            var btn = document.getElementById('hamburgerBtn');
+            var nav = document.getElementById('mainNav');
+            if (!btn) return;
+            btn.addEventListener('click', function () {
+                btn.classList.toggle('open');
+                nav.classList.toggle('open');
+            });
+        })();
+
+        // Notification dropdown
+        function toggleNotifPanel(e) {
+            e.stopPropagation();
+            document.getElementById('notifDropdown').classList.toggle('open');
+            // Mark comment notifications as read when opening
+            var badge = document.querySelector('.notif-badge');
+            if (badge) {
+                fetch('/notifications/mark-read', {method:'POST', headers:{'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || ''}})
+                    .then(function() { if (badge) badge.remove(); });
+            }
+        }
+        document.addEventListener('click', function (e) {
+            var d = document.getElementById('notifDropdown');
+            var w = document.getElementById('notifWrapper');
+            if (d && w && !w.contains(e.target)) d.classList.remove('open');
+        });
+
+        // Claim reply modal
+        function openClaimReply(btn) {
+            var name = btn.dataset.name;
+            var item = btn.dataset.item;
+            var desc = btn.dataset.desc;
+            var score = parseInt(btn.dataset.score) || 0;
+            var confirmUrl = btn.dataset.confirm;
+            var rejectUrl = btn.dataset.reject;
+
+            document.getElementById('replyModalTitle').textContent = '👤 ' + name + ' muốn nhận đồ';
+            document.getElementById('replyModalSub').textContent = '📦 ' + item;
+            document.getElementById('replyDesc').textContent = desc || '(Không có mô tả)';
+
+            var scoreColor = score >= 50 ? '#16a34a' : (score >= 30 ? '#f59e0b' : '#ef4444');
+            var scoreLabel = score >= 50 ? 'Khớp đủ — có thể là chủ nhân' : (score >= 30 ? 'Khớp một phần — cần xem xét' : 'Điểm thấp — ít khả năng');
+            document.getElementById('replyScoreWrap').innerHTML =
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+                '<span style="font-size:13px;color:#374151;font-weight:600;">Điểm xác minh AI</span>' +
+                '<span style="font-size:22px;font-weight:900;color:' + scoreColor + '">' + score + '<span style="font-size:13px;font-weight:400;color:#94a3b8;">/100</span></span>' +
+                '</div>' +
+                '<div style="background:#f1f5f9;border-radius:999px;height:8px;overflow:hidden;margin-bottom:6px;">' +
+                '<div style="width:' + score + '%;height:8px;background:' + scoreColor + ';border-radius:999px;transition:width 0.5s;"></div>' +
+                '</div>' +
+                '<div style="font-size:12px;color:' + scoreColor + ';font-weight:600;">' + scoreLabel + '</div>';
+
+            document.getElementById('replyConfirmForm').action = confirmUrl;
+            document.getElementById('replyRejectForm').action = rejectUrl;
+            document.getElementById('replyModalOverlay').classList.add('open');
+            document.getElementById('notifDropdown').classList.remove('open');
+        }
+        function closeReplyModal() {
+            document.getElementById('replyModalOverlay').classList.remove('open');
+        }
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') { closeReplyModal(); closeChatWidget(); }
+        });
+    </script>
+
+    <!-- ── CHAT SUPPORT WIDGET ── -->
+    <div id="chatWidget" style="position:fixed;bottom:24px;right:20px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:10px;">
+
+        <!-- Popup panel -->
+        <div id="chatPanel" style="display:none;width:320px;background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.18);overflow:hidden;animation:chatFadeIn .2s ease;">
+            <!-- Header -->
+            <div style="background:#1a73e8;padding:14px 16px;display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">💬</div>
+                <div style="flex:1;">
+                    <div style="color:#fff;font-weight:700;font-size:14px;">Hỗ trợ trực tuyến</div>
+                    <div style="color:rgba(255,255,255,0.8);font-size:12px;">Chúng tôi luôn sẵn sàng giúp bạn</div>
+                </div>
+                <button onclick="closeChatWidget()" style="background:none;border:none;color:rgba(255,255,255,0.8);cursor:pointer;font-size:18px;line-height:1;padding:2px 4px;">×</button>
+            </div>
+
+            <!-- Body -->
+            <div style="padding:16px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:13px;color:#64748b;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    Hỗ trợ 24/7
+                    <span style="display:inline-flex;align-items:center;gap:4px;color:#16a34a;font-weight:600;">
+                        <span style="width:7px;height:7px;background:#16a34a;border-radius:50%;display:inline-block;box-shadow:0 0 0 2px #bbf7d0;"></span>
+                        Đang hoạt động
+                    </span>
+                </div>
+
+                <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px;">🎯 Nhắn tin ngay để được hỗ trợ:</div>
+                <div style="font-size:12px;color:#64748b;margin-bottom:14px;">Click vào một trong những nút dưới đây ↓</div>
+
+                <!-- Facebook -->
+                <a href="https://www.facebook.com/maixuantruong2805" target="_blank" rel="noopener"
+                    style="display:flex;align-items:center;gap:12px;background:#1a73e8;border-radius:12px;padding:13px 16px;text-decoration:none;margin-bottom:10px;transition:opacity .15s;">
+                    <div style="width:34px;height:34px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="color:#fff;font-weight:700;font-size:13px;">Facebook Fanpage 💬</div>
+                        <div style="color:rgba(255,255,255,0.82);font-size:11px;">👆 Click để chat trực tiếp qua messenger</div>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                </a>
+
+                <!-- Zalo -->
+                <a href="https://zalo.me/{{ site_phone }}" target="_blank" rel="noopener"
+                    style="display:flex;align-items:center;gap:12px;background:#1a73e8;border-radius:12px;padding:13px 16px;text-decoration:none;transition:opacity .15s;">
+                    <div style="width:34px;height:34px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="color:#fff;font-weight:700;font-size:13px;">Zalo Chat 💬</div>
+                        <div style="color:rgba(255,255,255,0.82);font-size:11px;">👆 Click để liên hệ qua zalo nhanh chóng</div>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                </a>
+            </div>
+
+            <!-- Footer -->
+            <div style="text-align:center;font-size:11px;color:#94a3b8;padding:10px 16px 14px;border-top:1px solid #f1f5f9;">
+                Phản hồi giờ hành chính
+            </div>
+        </div>
+
+        <!-- Floating button -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div style="background:#1a73e8;color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;letter-spacing:.5px;">HỖ TRỢ</div>
+            <button id="chatToggleBtn" onclick="toggleChatWidget()"
+                style="width:54px;height:54px;background:#1a73e8;border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(26,115,232,0.5);position:relative;transition:transform .15s;">
+                <svg id="chatIconOpen" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                <span style="position:absolute;top:6px;right:6px;width:10px;height:10px;background:#ef4444;border-radius:50%;border:2px solid white;display:block;"></span>
+                <span style="position:absolute;bottom:-6px;font-size:9px;font-weight:800;color:#1a73e8;letter-spacing:.4px;">CHAT</span>
+            </button>
+        </div>
+    </div>
+
+    <style>
+    @keyframes chatFadeIn { from { opacity:0; transform:translateY(10px) scale(.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+    #chatWidget a:hover { opacity:.88; }
+    </style>
+
+    <script>
+    function toggleChatWidget() {
+        const p = document.getElementById('chatPanel');
+        p.style.display = p.style.display === 'none' ? 'block' : 'none';
+    }
+    function closeChatWidget() {
+        document.getElementById('chatPanel').style.display = 'none';
+    }
+    </script>
+
+<!-- ═══ CUSTOM CONFIRM MODAL (toàn app) ═══ -->
+<div id="ac-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:999999;align-items:center;justify-content:center;backdrop-filter:blur(3px);">
+    <div style="background:#fff;border-radius:18px;padding:32px 28px 24px;max-width:400px;width:92%;box-shadow:0 24px 64px rgba(0,0,0,0.22);text-align:center;animation:acFade .18s ease;">
+        <div id="ac-icon" style="font-size:44px;margin-bottom:12px;">⚠️</div>
+        <p id="ac-msg" style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 8px;line-height:1.55;"></p>
+        <p id="ac-sub" style="font-size:13px;color:#64748b;margin:0 0 24px;"></p>
+        <div style="display:flex;gap:10px;justify-content:center;">
+            <button onclick="acClose()" style="padding:10px 28px;border-radius:9px;border:1.5px solid #e2e8f0;background:white;font-size:14px;font-weight:700;cursor:pointer;color:#475569;transition:background .15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='white'">Hủy</button>
+            <button id="ac-ok" style="padding:10px 28px;border-radius:9px;border:none;font-size:14px;font-weight:700;cursor:pointer;color:white;background:#dc2626;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Xác nhận</button>
+        </div>
+    </div>
+</div>
+<style>
+@keyframes acFade { from{transform:translateY(-16px);opacity:0} to{transform:translateY(0);opacity:1} }
+</style>
+<script>
+var _acCallback = null;
+function acClose() {
+    document.getElementById('ac-overlay').style.display = 'none';
+    _acCallback = null;
+}
+function adminConfirm(msg, formEl, opts) {
+    opts = opts || {};
+    document.getElementById('ac-msg').textContent = msg;
+    document.getElementById('ac-sub').textContent = opts.sub || '';
+    document.getElementById('ac-icon').textContent = opts.icon || '⚠️';
+    var okBtn = document.getElementById('ac-ok');
+    okBtn.textContent = opts.okLabel || 'Xác nhận';
+    okBtn.style.background = opts.danger ? '#dc2626' : (opts.okColor || '#16a34a');
+    document.getElementById('ac-overlay').style.display = 'flex';
+    okBtn.onclick = function() {
+        acClose();
+        if (typeof formEl === 'function') { formEl(); return; }
+        if (!formEl) return;
+        // Nếu cần set thêm field trước khi submit
+        if (opts.setField) {
+            var inp = formEl.querySelector('input[name="' + opts.setField.name + '"][type="hidden"]');
+            if (!inp) { inp = document.createElement('input'); inp.type='hidden'; inp.name=opts.setField.name; formEl.appendChild(inp); }
+            inp.value = opts.setField.value;
+        }
+        var csrf = document.querySelector('meta[name="csrf-token"]');
+        if (csrf && !formEl.querySelector('input[name="csrf_token"]')) {
+            var csrfInp = document.createElement('input');
+            csrfInp.type = 'hidden'; csrfInp.name = 'csrf_token'; csrfInp.value = csrf.content;
+            formEl.appendChild(csrfInp);
+        }
+        formEl.submit();
+    };
+}
+document.getElementById('ac-overlay').addEventListener('click', function(e) {
+    if (e.target === this) acClose();
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') acClose();
+});
+</script>
+<script>
+// Tự động đính CSRF token vào mọi form POST và fetch request
+(function() {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    if (!csrfToken) return;
+    // Inject vào form submit
+    document.addEventListener('submit', function(e) {
+        const form = e.target;
+        if (form.method && form.method.toLowerCase() === 'post') {
+            if (!form.querySelector('input[name="csrf_token"]')) {
+                const inp = document.createElement('input');
+                inp.type = 'hidden'; inp.name = 'csrf_token'; inp.value = csrfToken;
+                form.appendChild(inp);
+            }
+        }
+    }, true);
+    // Inject vào fetch
+    const _origFetch = window.fetch;
+    window.fetch = function(url, opts = {}) {
+        const method = (opts.method || 'GET').toUpperCase();
+        if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+            opts.headers = Object.assign({'X-CSRFToken': csrfToken}, opts.headers || {});
+        }
+        return _origFetch(url, opts);
+    };
+})();
+
+// Popup toast dùng cho validate client-side (không reload trang)
+function showAuthToast(msg, type) {
+    type = type || 'danger';
+    var colors = {
+        danger:  {bg:'#fee2e2', color:'#991b1b', border:'#fca5a5'},
+        warning: {bg:'#fef3c7', color:'#92400e', border:'#fcd34d'},
+        success: {bg:'#dcfce7', color:'#166534', border:'#86efac'},
+        info:    {bg:'#dbeafe', color:'#1d4ed8', border:'#93c5fd'}
+    };
+    var c = colors[type] || colors.danger;
+
+    // Xóa toast cũ nếu có
+    var old = document.getElementById('_authToast');
+    if (old) old.remove();
+
+    var el = document.createElement('div');
+    el.id = '_authToast';
+    el.style.cssText = [
+        'position:fixed','top:24px','left:50%','transform:translateX(-50%)',
+        'z-index:99999','background:'+c.bg,'color:'+c.color,
+        'border:1.5px solid '+c.border,
+        'padding:14px 20px','border-radius:12px',
+        'font-size:14px','font-weight:700',
+        'box-shadow:0 8px 32px rgba(0,0,0,0.15)',
+        'display:flex','align-items:center','gap:10px',
+        'max-width:90vw','animation:toastIn .22s ease'
+    ].join(';');
+
+    var icon = {danger:'⛔', warning:'⚠️', success:'✅', info:'ℹ️'}[type] || '⛔';
+    el.innerHTML = '<span>'+icon+'</span><span>'+msg+'</span>'
+        +'<button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-size:18px;line-height:1;color:inherit;margin-left:6px;opacity:.7">×</button>';
+
+    document.body.appendChild(el);
+    setTimeout(function() {
+        if (el.parentElement) {
+            el.style.transition = 'opacity .4s';
+            el.style.opacity = '0';
+            setTimeout(function() { el.remove(); }, 400);
+        }
+    }, 4000);
+}
+</script>
+<style>
+@keyframes toastIn {
+    from { opacity:0; transform:translateX(-50%) translateY(-12px); }
+    to   { opacity:1; transform:translateX(-50%) translateY(0); }
+}
+</style>
+</body>
+</html>

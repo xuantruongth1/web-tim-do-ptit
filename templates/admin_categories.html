@@ -1,0 +1,110 @@
+{% extends "base_admin.html" %}
+{% block admin_title %}Danh mục{% endblock %}
+
+{% block admin_content %}
+<div class="adm-page-head">
+    <h1>🏷️ Quản lý Danh mục</h1>
+    <p>Thêm, sửa, xóa danh mục cho bài đăng mất đồ / nhặt được.</p>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;">
+
+<!-- Category list -->
+<div class="adm-card">
+    <div class="adm-card-title">Danh sách danh mục ({{ cats|length }})</div>
+    <div class="adm-table-wrap">
+        <table class="adm-table">
+            <thead>
+                <tr>
+                    <th>ID</th><th>Icon</th><th>Tên danh mục</th><th>Thứ tự</th><th>Ngày tạo</th><th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cat in cats %}
+                <tr>
+                    <td><span style="color:#94a3b8;font-size:12px;">#{{ cat["id"] }}</span></td>
+                    <td style="font-size:20px;text-align:center;">{{ cat["icon"] or "📦" }}</td>
+                    <td style="font-weight:600;font-size:14px;">{{ cat["name"] }}</td>
+                    <td style="text-align:center;color:#94a3b8;">{{ cat["sort_order"] }}</td>
+                    <td style="font-size:11px;color:#64748b;">{{ cat["created_at"][:10] if cat["created_at"] else "—" }}</td>
+                    <td>
+                        <div style="display:flex;gap:4px;">
+                            <button type="button" class="adm-btn adm-btn-sm adm-btn-ghost"
+                                onclick="openEditModal({{ cat['id'] }}, '{{ cat['name']|replace("'","\\'") }}', '{{ cat['icon'] or '📦' }}', {{ cat['sort_order'] }})">✏️ Sửa</button>
+                            <form method="POST" action="{{ url_for('admin_category_delete', cat_id=cat['id']) }}" style="display:inline;">
+                                <button type="button" class="adm-btn adm-btn-sm adm-btn-danger"
+                                    onclick="admConfirm('Xóa danh mục «{{ cat.name }}»?', this.closest('form'), {danger:true,icon:'🗑️',okLabel:'Xóa'})">🗑️</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:32px;">Chưa có danh mục nào.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add form -->
+<div class="adm-card">
+    <div class="adm-card-title">➕ Thêm danh mục mới</div>
+    <form method="POST" action="{{ url_for('admin_category_add') }}">
+        <div class="adm-form-group">
+            <label class="adm-form-label">Tên danh mục <span style="color:#ef4444;">*</span></label>
+            <input type="text" name="name" class="adm-form-input" placeholder="VD: Điện thoại" required>
+        </div>
+        <div class="adm-form-group">
+            <label class="adm-form-label">Icon (emoji)</label>
+            <input type="text" name="icon" class="adm-form-input" value="📦" placeholder="📦">
+        </div>
+        <div class="adm-form-group">
+            <label class="adm-form-label">Thứ tự hiển thị</label>
+            <input type="number" name="sort_order" class="adm-form-input" value="99" min="0">
+        </div>
+        <button type="submit" class="adm-btn adm-btn-primary" style="width:100%;">➕ Thêm danh mục</button>
+    </form>
+</div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editCatOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;align-items:center;justify-content:center;">
+    <div style="background:#1e293b;border-radius:12px;padding:24px;width:360px;max-width:95vw;border:1px solid #334155;">
+        <h3 style="font-size:15px;font-weight:800;color:#e2e8f0;margin-bottom:16px;">✏️ Sửa danh mục #<span id="editCatId"></span></h3>
+        <form id="editCatForm" method="POST">
+            <div class="adm-form-group">
+                <label class="adm-form-label">Tên danh mục</label>
+                <input type="text" id="editCatName" name="name" class="adm-form-input" required>
+            </div>
+            <div class="adm-form-group">
+                <label class="adm-form-label">Icon</label>
+                <input type="text" id="editCatIcon" name="icon" class="adm-form-input">
+            </div>
+            <div class="adm-form-group">
+                <label class="adm-form-label">Thứ tự</label>
+                <input type="number" id="editCatOrder" name="sort_order" class="adm-form-input" min="0">
+            </div>
+            <div style="display:flex;gap:8px;margin-top:4px;">
+                <button type="submit" class="adm-btn adm-btn-primary" style="flex:1;">💾 Lưu</button>
+                <button type="button" class="adm-btn adm-btn-ghost" onclick="document.getElementById('editCatOverlay').style.display='none'">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block admin_extra_js %}
+<script>
+function openEditModal(id, name, icon, order) {
+    document.getElementById('editCatId').textContent = id;
+    document.getElementById('editCatForm').action = '/admin/categories/' + id + '/edit';
+    document.getElementById('editCatName').value = name;
+    document.getElementById('editCatIcon').value = icon;
+    document.getElementById('editCatOrder').value = order;
+    document.getElementById('editCatOverlay').style.display = 'flex';
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') document.getElementById('editCatOverlay').style.display = 'none';
+});
+</script>
+{% endblock %}
+{% endblock %}

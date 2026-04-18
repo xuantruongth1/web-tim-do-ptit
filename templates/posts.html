@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<section class="section-head left">
+    <h1>{{ page_title }}</h1>
+    <p>Các bài đăng được sắp xếp theo mức độ ưu tiên rồi đến thời gian tạo.
+       {% if total %}<span style="color:#6b7280;">— {{ total }} kết quả</span>{% endif %}
+    </p>
+</section>
+
+<div class="card-grid">
+    {% for p in posts %}
+    <div class="post-card">
+        <div class="badge priority-{{ p['priority'] }}">
+            {% if p['priority'] == 3 %}TÌM GẤP
+            {% elif p['priority'] == 2 %}ƯU TIÊN
+            {% elif p['priority'] == 1 %}NỔI BẬT
+            {% else %}TIN THƯỜNG{% endif %}
+        </div>
+
+        {% if p['image'] %}
+            <img src="{{ url_for('static', filename='uploads/' ~ p['image']) }}" alt="Ảnh bài đăng">
+        {% else %}
+            <div class="img-placeholder">Không có ảnh</div>
+        {% endif %}
+
+        <div class="post-body">
+            <div class="type-line {{ 'type-lost' if p['post_type'] == 'lost' else 'type-found' }}">
+                {{ 'MẤT ĐỒ' if p['post_type'] == 'lost' else 'NHẶT ĐƯỢC' }}
+            </div>
+            <h3><a href="{{ url_for('post_detail', post_id=p['id']) }}" style="text-decoration:none;color:inherit;">{{ p['title'] }}</a></h3>
+            <p>{{ p['description'][:100] if p['description'] else '' }}{% if p['description'] and p['description']|length > 100 %}…{% endif %}</p>
+            <div class="meta-column">
+                <span><b>Loại:</b> {{ p['category'] }}</span>
+                <span><b>Địa điểm:</b> {{ p['location'] }}</span>
+                <span><b>Thành phố:</b> {{ p['city'] or 'Không rõ' }}</span>
+                {% if p['post_type'] == 'found' %}
+                    <span><b>Liên hệ:</b> <em style="color:#666;font-size:13px;">Mở sau xác minh</em></span>
+                {% else %}
+                    <span><b>Liên hệ:</b> {{ p['contact'] }}</span>
+                {% endif %}
+                <span><b>Đăng bởi:</b> {{ p['full_name'] or 'Ẩn danh' }}</span>
+                <span style="font-size:11px;color:#94a3b8;">⏰ {{ p['created_at'] | time_ago }}</span>
+            </div>
+            <div style="margin-top:15px;text-align:right;">
+                <a href="{{ url_for('post_detail', post_id=p['id']) }}" class="btn" style="padding:6px 15px;font-size:13px;">Xem chi tiết</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div style="grid-column:1/-1;text-align:center;padding:48px;color:#94a3b8;">
+        <div style="font-size:48px;margin-bottom:12px;">🔍</div>
+        <p style="font-size:15px;">Chưa có dữ liệu hiển thị.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- PHÂN TRANG -->
+{% if total_pages and total_pages > 1 %}
+<div class="pagination">
+    {% if page > 1 %}
+        <a href="{{ request.path }}?{% if request.args.keyword %}keyword={{ request.args.keyword }}&{% endif %}{% if request.args.category %}category={{ request.args.category }}&{% endif %}{% if request.args.city %}city={{ request.args.city }}&{% endif %}{% if request.args.post_type %}post_type={{ request.args.post_type }}&{% endif %}page={{ page - 1 }}" class="page-btn">← Trước</a>
+    {% else %}
+        <span class="page-btn disabled">← Trước</span>
+    {% endif %}
+
+    {% for p_num in range(1, total_pages + 1) %}
+        {% if p_num == page %}
+            <span class="page-btn active">{{ p_num }}</span>
+        {% elif p_num <= 2 or p_num > total_pages - 2 or (p_num >= page - 1 and p_num <= page + 1) %}
+            <a href="{{ request.path }}?{% if request.args.keyword %}keyword={{ request.args.keyword }}&{% endif %}{% if request.args.category %}category={{ request.args.category }}&{% endif %}{% if request.args.city %}city={{ request.args.city }}&{% endif %}{% if request.args.post_type %}post_type={{ request.args.post_type }}&{% endif %}page={{ p_num }}" class="page-btn">{{ p_num }}</a>
+        {% elif p_num == 3 or p_num == total_pages - 2 %}
+            <span class="page-btn disabled">…</span>
+        {% endif %}
+    {% endfor %}
+
+    {% if page < total_pages %}
+        <a href="{{ request.path }}?{% if request.args.keyword %}keyword={{ request.args.keyword }}&{% endif %}{% if request.args.category %}category={{ request.args.category }}&{% endif %}{% if request.args.city %}city={{ request.args.city }}&{% endif %}{% if request.args.post_type %}post_type={{ request.args.post_type }}&{% endif %}page={{ page + 1 }}" class="page-btn">Sau →</a>
+    {% else %}
+        <span class="page-btn disabled">Sau →</span>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

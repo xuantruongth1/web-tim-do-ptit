@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() if csrf_token is defined else '' }}">
+    <title>{% block admin_title %}Admin{% endblock %} — PTIT Admin</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+    /* ─── Reset for admin ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body.admin-body { background: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+
+    /* ─── Layout ─── */
+    .adm-layout { display: flex; min-height: 100vh; }
+
+    /* ─── Sidebar ─── */
+    .adm-sidebar {
+        width: 260px; flex-shrink: 0;
+        background: #0f172a;
+        display: flex; flex-direction: column;
+        position: fixed; top: 0; left: 0; bottom: 0;
+        z-index: 1000; overflow-y: auto;
+        transition: transform .25s ease;
+    }
+    .adm-sidebar-logo {
+        padding: 20px 20px 16px;
+        border-bottom: 1px solid rgba(255,255,255,.08);
+        display: flex; align-items: center; gap: 10px;
+    }
+    .adm-sidebar-logo img { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; }
+    .adm-sidebar-logo-text { color: #f8fafc; font-weight: 800; font-size: 15px; line-height: 1.2; }
+    .adm-sidebar-logo-sub  { color: #64748b; font-size: 11px; }
+
+    .adm-nav { padding: 10px 10px 20px; flex: 1; }
+    .adm-nav-section { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase;
+        letter-spacing: .8px; padding: 14px 10px 6px; }
+    .adm-nav-item {
+        display: flex; align-items: center; gap: 10px;
+        padding: 9px 12px; border-radius: 8px; text-decoration: none;
+        color: #94a3b8; font-size: 13px; font-weight: 600;
+        transition: all .15s; margin-bottom: 2px; position: relative;
+    }
+    .adm-nav-item:hover  { background: rgba(255,255,255,.07); color: #e2e8f0; }
+    .adm-nav-item.active { background: #1e3a5f; color: #60a5fa; }
+    .adm-nav-item .icon  { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+    .adm-nav-item .label { flex: 1; }
+    .adm-nav-badge {
+        background: #ef4444; color: #fff; border-radius: 999px;
+        font-size: 10px; font-weight: 800; min-width: 18px; height: 18px;
+        display: inline-flex; align-items: center; justify-content: center; padding: 0 4px;
+    }
+    .adm-nav-badge.green { background: #16a34a; }
+    .adm-nav-divider { height: 1px; background: rgba(255,255,255,.06); margin: 8px 10px; }
+    .adm-sidebar-footer {
+        padding: 14px 16px; border-top: 1px solid rgba(255,255,255,.06);
+        font-size: 12px; color: #475569;
+    }
+    .adm-sidebar-footer a { color: #64748b; text-decoration: none; }
+    .adm-sidebar-footer a:hover { color: #94a3b8; }
+
+    /* ─── Main area ─── */
+    .adm-main { margin-left: 260px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ─── Topbar ─── */
+    .adm-topbar {
+        position: sticky; top: 0; z-index: 100;
+        background: #fff; border-bottom: 1px solid #e2e8f0;
+        padding: 0 24px; height: 56px;
+        display: flex; align-items: center; gap: 12px;
+        box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .adm-topbar-toggle {
+        width: 36px; height: 36px; border: none; background: #f1f5f9;
+        border-radius: 8px; cursor: pointer; font-size: 16px; display: none;
+        align-items: center; justify-content: center;
+    }
+    .adm-topbar-breadcrumb { font-size: 14px; color: #64748b; flex: 1; }
+    .adm-topbar-breadcrumb strong { color: #0f172a; }
+    .adm-topbar-actions { display: flex; align-items: center; gap: 10px; }
+    .adm-topbar-user { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #374151; }
+    .adm-topbar-avatar {
+        width: 30px; height: 30px; border-radius: 50%; background: #1e3a5f;
+        color: #60a5fa; font-weight: 800; font-size: 13px;
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .adm-topbar-btn {
+        padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 600;
+        text-decoration: none; border: 1.5px solid #e2e8f0; color: #374151;
+        background: white; cursor: pointer; transition: all .15s;
+    }
+    .adm-topbar-btn:hover { background: #f8fafc; border-color: #cbd5e1; }
+
+    /* ─── Content ─── */
+    .adm-content { padding: 24px; flex: 1; }
+
+    /* ─── Flash ─── */
+    .adm-flash-wrap { margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .adm-flash {
+        padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .adm-flash.success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .adm-flash.danger  { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+    .adm-flash.warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .adm-flash.info    { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .adm-flash-close   { background: none; border: none; cursor: pointer; font-size: 16px; color: inherit; opacity: .6; }
+    .adm-flash-close:hover { opacity: 1; }
+
+    /* ─── Page header ─── */
+    .adm-page-head { margin-bottom: 20px; }
+    .adm-page-head h1 { font-size: 22px; font-weight: 800; color: #0f172a; }
+    .adm-page-head p  { font-size: 13px; color: #64748b; margin-top: 4px; }
+
+    /* ─── Cards ─── */
+    .adm-card { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; margin-bottom: 20px; }
+    .adm-card-title { font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 14px;
+        border-left: 3px solid #3b82f6; padding-left: 10px; }
+
+    /* ─── Stats grid ─── */
+    .adm-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 14px; margin-bottom: 20px; }
+    .adm-stat-card {
+        background: #fff; border-radius: 10px; border: 1px solid #e2e8f0;
+        padding: 16px; border-left: 4px solid #3b82f6;
+    }
+    .adm-stat-card h3 { font-size: 24px; font-weight: 900; color: #0f172a; }
+    .adm-stat-card p  { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+    /* ─── Table ─── */
+    .adm-table-wrap { overflow-x: auto; }
+    .adm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .adm-table th { background: #f8fafc; color: #374151; font-weight: 700; padding: 10px 12px;
+        border-bottom: 2px solid #e2e8f0; text-align: left; white-space: nowrap; }
+    .adm-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .adm-table tr:last-child td { border-bottom: none; }
+    .adm-table tr:hover td { background: #f8fafc; }
+
+    /* ─── Buttons ─── */
+    .adm-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
+        border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none;
+        border: none; cursor: pointer; transition: all .15s; }
+    .adm-btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+    .adm-btn-primary { background: #2563eb; color: #fff; }
+    .adm-btn-primary:hover { background: #1d4ed8; }
+    .adm-btn-success { background: #16a34a; color: #fff; }
+    .adm-btn-success:hover { background: #15803d; }
+    .adm-btn-danger  { background: #ef4444; color: #fff; }
+    .adm-btn-danger:hover  { background: #dc2626; }
+    .adm-btn-warning { background: #f59e0b; color: #fff; }
+    .adm-btn-warning:hover { background: #d97706; }
+    .adm-btn-ghost  { background: #f1f5f9; color: #374151; border: 1.5px solid #e2e8f0; }
+    .adm-btn-ghost:hover { background: #e2e8f0; }
+
+    /* ─── Status badges ─── */
+    .adm-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+    .adm-badge-pending  { background: #fef3c7; color: #92400e; }
+    .adm-badge-active   { background: #dcfce7; color: #15803d; }
+    .adm-badge-rejected { background: #fee2e2; color: #b91c1c; }
+    .adm-badge-resolved { background: #dbeafe; color: #1d4ed8; }
+    .adm-badge-hidden   { background: #f1f5f9; color: #64748b; }
+    .adm-badge-paid     { background: #dcfce7; color: #15803d; }
+    .adm-badge-info     { background: #dbeafe; color: #1d4ed8; }
+    .adm-badge-warning  { background: #fef3c7; color: #92400e; }
+
+    /* ─── Form ─── */
+    .adm-form-group { margin-bottom: 14px; }
+    .adm-form-label { display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 5px; }
+    .adm-form-input {
+        width: 100%; padding: 8px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+        font-size: 13px; color: #0f172a; background: #fff;
+        transition: border-color .15s;
+    }
+    .adm-form-input:focus { outline: none; border-color: #3b82f6; }
+    .adm-form-select { appearance: none; }
+    .adm-form-row { display: grid; gap: 12px; }
+    .adm-form-row-2 { grid-template-columns: 1fr 1fr; }
+    .adm-form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    /* ─── Tabs ─── */
+    .adm-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+    .adm-tab {
+        padding: 7px 16px; border-radius: 7px; font-size: 13px; font-weight: 700;
+        text-decoration: none; border: 1.5px solid #e2e8f0; color: #64748b;
+        background: white; cursor: pointer; transition: all .15s;
+    }
+    .adm-tab:hover  { border-color: #3b82f6; color: #2563eb; }
+    .adm-tab.active { background: #2563eb; color: white; border-color: #2563eb; }
+    .adm-tab .count { font-size: 11px; background: rgba(0,0,0,.12); border-radius: 999px;
+        padding: 1px 5px; margin-left: 4px; }
+    .adm-tab.active .count { background: rgba(255,255,255,.3); }
+
+    /* ─── Checkbox row for bulk ─── */
+    .adm-bulk-bar {
+        display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+        background: #eff6ff; border-radius: 8px; margin-bottom: 12px;
+        border: 1.5px solid #bfdbfe; flex-wrap: wrap;
+    }
+    .adm-bulk-bar label { font-size: 13px; color: #1d4ed8; font-weight: 600; }
+
+    /* ─── Overlay confirm ─── */
+    #adm-confirm-overlay {
+        display: none; position: fixed; inset: 0;
+        background: rgba(15,23,42,.55); z-index: 99999;
+        align-items: center; justify-content: center; backdrop-filter: blur(3px);
+    }
+    #adm-confirm-overlay .modal {
+        background: #fff; border-radius: 16px; padding: 28px 24px 20px;
+        max-width: 380px; width: 92%; text-align: center;
+        box-shadow: 0 24px 64px rgba(0,0,0,.22);
+    }
+    #adm-confirm-overlay .modal-icon { font-size: 40px; margin-bottom: 10px; }
+    #adm-confirm-overlay .modal-msg  { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+    #adm-confirm-overlay .modal-sub  { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+    #adm-confirm-overlay .modal-btns { display: flex; gap: 10px; justify-content: center; }
+    #adm-confirm-overlay .btn-cancel { padding: 9px 24px; border-radius: 8px; border: 1.5px solid #e2e8f0;
+        background: white; font-size: 13px; font-weight: 700; cursor: pointer; color: #64748b; }
+    #adm-confirm-overlay .btn-ok     { padding: 9px 24px; border-radius: 8px; border: none;
+        font-size: 13px; font-weight: 700; cursor: pointer; color: white; background: #16a34a; }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 900px) {
+        .adm-sidebar { transform: translateX(-100%); }
+        .adm-sidebar.open { transform: translateX(0); }
+        .adm-main { margin-left: 0; }
+        .adm-topbar-toggle { display: flex; }
+        .adm-form-row-3 { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+        .adm-content { padding: 16px; }
+        .adm-stats { grid-template-columns: repeat(2, 1fr); }
+        .adm-form-row-2, .adm-form-row-3 { grid-template-columns: 1fr; }
+    }
+
+    /* ─── Sidebar overlay (mobile) ─── */
+    .adm-sidebar-backdrop {
+        display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4);
+        z-index: 999; backdrop-filter: blur(2px);
+    }
+    .adm-sidebar-backdrop.show { display: block; }
+    </style>
+</head>
+<body class="admin-body">
+
+<div class="adm-sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
+<div class="adm-layout">
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside class="adm-sidebar" id="adminSidebar">
+        <div class="adm-sidebar-logo">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+            <div>
+                <div class="adm-sidebar-logo-text">PTIT Admin</div>
+                <div class="adm-sidebar-logo-sub">{{ session.get('full_name','Admin') }}</div>
+            </div>
+        </div>
+
+        <nav class="adm-nav">
+            <div class="adm-nav-section">Tổng quan</div>
+            <a href="{{ url_for('admin_dashboard') }}" class="adm-nav-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                <span class="icon">📊</span><span class="label">Dashboard</span>
+                {% if admin_pending_posts > 0 %}
+                <span class="adm-nav-badge">{{ admin_pending_posts }}</span>
+                {% endif %}
+            </a>
+
+            <div class="adm-nav-section">Nội dung</div>
+            <a href="{{ url_for('admin_posts') }}" class="adm-nav-item {% if request.endpoint in ('admin_posts',) %}active{% endif %}">
+                <span class="icon">📋</span><span class="label">Bài đăng</span>
+                {% if admin_pending_posts > 0 %}
+                <span class="adm-nav-badge">{{ admin_pending_posts }}</span>
+                {% endif %}
+            </a>
+            <a href="{{ url_for('admin_claims') }}" class="adm-nav-item {% if request.endpoint == 'admin_claims' %}active{% endif %}">
+                <span class="icon">🔍</span><span class="label">Claims</span>
+                {% if admin_pending_claims_count > 0 %}
+                <span class="adm-nav-badge">{{ admin_pending_claims_count }}</span>
+                {% endif %}
+            </a>
+            <a href="{{ url_for('admin_comments_list') }}" class="adm-nav-item {% if request.endpoint == 'admin_comments_list' %}active{% endif %}">
+                <span class="icon">💬</span><span class="label">Bình luận</span>
+            </a>
+            <a href="{{ url_for('admin_reports') }}" class="adm-nav-item {% if request.endpoint == 'admin_reports' %}active{% endif %}">
+                <span class="icon">🚨</span>
+                <span class="label">Báo cáo vi phạm</span>
+                {% if admin_pending_reports > 0 %}
+                <span class="adm-nav-badge">{{ admin_pending_reports }}</span>
+                {% endif %}
+            </a>
+            <a href="{{ url_for('admin_categories') }}" class="adm-nav-item {% if request.endpoint in ('admin_categories',) %}active{% endif %}">
+                <span class="icon">🏷️</span><span class="label">Danh mục</span>
+            </a>
+
+            <div class="adm-nav-section">Tài chính</div>
+            <a href="{{ url_for('admin_payments') }}" class="adm-nav-item {% if request.endpoint == 'admin_payments' %}active{% endif %}">
+                <span class="icon">💳</span><span class="label">Thanh toán</span>
+                {% if admin_pending_payments > 0 %}
+                <span class="adm-nav-badge">{{ admin_pending_payments }}</span>
+                {% endif %}
+            </a>
+            <a href="{{ url_for('admin_revenue') }}" class="adm-nav-item {% if request.endpoint == 'admin_revenue' %}active{% endif %}">
+                <span class="icon">📈</span><span class="label">Doanh thu</span>
+            </a>
+            <a href="{{ url_for('admin_vouchers') }}" class="adm-nav-item {% if request.endpoint == 'admin_vouchers' %}active{% endif %}">
+                <span class="icon">🎫</span><span class="label">Voucher</span>
+            </a>
+
+            <div class="adm-nav-section">Người dùng</div>
+            <a href="{{ url_for('admin_users') }}" class="adm-nav-item {% if request.endpoint in ('admin_users','admin_user_profile') %}active{% endif %}">
+                <span class="icon">👥</span><span class="label">Người dùng</span>
+            </a>
+
+            <div class="adm-nav-section">Hệ thống</div>
+            <a href="{{ url_for('admin_announcements') }}" class="adm-nav-item {% if request.endpoint == 'admin_announcements' %}active{% endif %}">
+                <span class="icon">📢</span><span class="label">Thông báo</span>
+            </a>
+            <a href="{{ url_for('admin_bulk_email') }}" class="adm-nav-item {% if request.endpoint == 'admin_bulk_email' %}active{% endif %}">
+                <span class="icon">📧</span><span class="label">Email hàng loạt</span>
+            </a>
+            <a href="{{ url_for('admin_settings') }}" class="adm-nav-item {% if request.endpoint == 'admin_settings' %}active{% endif %}">
+                <span class="icon">⚙️</span><span class="label">Cài đặt</span>
+            </a>
+            <a href="{{ url_for('admin_logs') }}" class="adm-nav-item {% if request.endpoint == 'admin_logs' %}active{% endif %}">
+                <span class="icon">📜</span><span class="label">Nhật ký</span>
+            </a>
+
+            <div class="adm-nav-divider"></div>
+            <a href="{{ url_for('home') }}" target="_blank" class="adm-nav-item">
+                <span class="icon">🌐</span><span class="label">Trang chủ</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="adm-nav-item" style="color:#f87171;">
+                <span class="icon">🚪</span><span class="label">Đăng xuất</span>
+            </a>
+        </nav>
+
+        <div class="adm-sidebar-footer">
+            Đăng nhập với quyền <strong style="color:#94a3b8;">{{ session.get('role','?') }}</strong>
+        </div>
+    </aside>
+
+    <!-- ═══ MAIN ═══ -->
+    <div class="adm-main">
+        <!-- Topbar -->
+        <div class="adm-topbar">
+            <button class="adm-topbar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
+            <div class="adm-topbar-breadcrumb">
+                <span style="color:#94a3b8;">Admin</span>
+                {% block admin_breadcrumb %}<span style="color:#94a3b8;"> / </span><strong>{{ self.admin_title() }}</strong>{% endblock %}
+            </div>
+            <div class="adm-topbar-actions">
+                <div class="adm-topbar-user">
+                    <div class="adm-topbar-avatar">{{ (session.get('full_name','A') or 'A')[0]|upper }}</div>
+                    <span style="font-weight:600;">{{ session.get('full_name') }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="adm-content">
+            <!-- Flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="adm-flash-wrap" id="admFlashWrap">
+                    {% for category, message in messages %}
+                    <div class="adm-flash {{ category }}">
+                        {{ message }}
+                        <button class="adm-flash-close" onclick="this.parentElement.remove()">×</button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block admin_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+<!-- Confirm modal -->
+<div id="adm-confirm-overlay">
+    <div class="modal">
+        <div class="modal-icon" id="adm-confirm-icon">⚠️</div>
+        <div class="modal-msg" id="adm-confirm-msg"></div>
+        <div class="modal-sub" id="adm-confirm-sub"></div>
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="admConfirmClose()">Hủy</button>
+            <button class="btn-ok" id="adm-confirm-ok">Xác nhận</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Sidebar toggle
+function toggleSidebar() {
+    document.getElementById('adminSidebar').classList.toggle('open');
+    document.getElementById('sidebarBackdrop').classList.toggle('show');
+}
+function closeSidebar() {
+    document.getElementById('adminSidebar').classList.remove('open');
+    document.getElementById('sidebarBackdrop').classList.remove('show');
+}
+
+// Auto-dismiss flash after 5s
+(function() {
+    var w = document.getElementById('admFlashWrap');
+    if (!w) return;
+    setTimeout(function() {
+        w.querySelectorAll('.adm-flash').forEach(function(el) {
+            el.style.transition = 'opacity .5s';
+            el.style.opacity = '0';
+            setTimeout(function() { el.remove(); }, 500);
+        });
+    }, 5000);
+})();
+
+// Confirm modal
+var _admConfirmCallback = null;
+function admConfirm(msg, formOrFn, opts) {
+    opts = opts || {};
+    document.getElementById('adm-confirm-msg').textContent = msg;
+    document.getElementById('adm-confirm-sub').textContent = opts.sub || '';
+    document.getElementById('adm-confirm-icon').textContent = opts.icon || '⚠️';
+    var okBtn = document.getElementById('adm-confirm-ok');
+    okBtn.textContent = opts.okLabel || 'Xác nhận';
+    okBtn.style.background = opts.danger ? '#ef4444' : (opts.okColor || '#16a34a');
+    document.getElementById('adm-confirm-overlay').style.display = 'flex';
+    okBtn.onclick = function() {
+        admConfirmClose();
+        if (typeof formOrFn === 'function') { formOrFn(); return; }
+        if (!formOrFn) return;
+        var csrf = document.querySelector('meta[name="csrf-token"]');
+        if (csrf && !formOrFn.querySelector('input[name="csrf_token"]')) {
+            var inp = document.createElement('input');
+            inp.type = 'hidden'; inp.name = 'csrf_token'; inp.value = csrf.content;
+            formOrFn.appendChild(inp);
+        }
+        formOrFn.submit();
+    };
+}
+function admConfirmClose() {
+    document.getElementById('adm-confirm-overlay').style.display = 'none';
+}
+document.getElementById('adm-confirm-overlay').addEventListener('click', function(e) {
+    if (e.target === this) admConfirmClose();
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') admConfirmClose();
+});
+
+// Select all checkboxes
+function toggleSelectAll(cb) {
+    document.querySelectorAll('.post-checkbox').forEach(function(c) { c.checked = cb.checked; });
+    updateBulkCount();
+}
+function updateBulkCount() {
+    var checked = document.querySelectorAll('.post-checkbox:checked').length;
+    var el = document.getElementById('bulkSelectedCount');
+    if (el) el.textContent = checked;
+}
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('post-checkbox')) updateBulkCount();
+});
+</script>
+
+{% block admin_extra_js %}{% endblock %}
+<script>
+(function() {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    if (!csrfToken) return;
+    document.addEventListener('submit', function(e) {
+        const form = e.target;
+        if (form.method && form.method.toLowerCase() === 'post') {
+            if (!form.querySelector('input[name="csrf_token"]')) {
+                const inp = document.createElement('input');
+                inp.type = 'hidden'; inp.name = 'csrf_token'; inp.value = csrfToken;
+                form.appendChild(inp);
+            }
+        }
+    }, true);
+    const _origFetch = window.fetch;
+    window.fetch = function(url, opts = {}) {
+        const method = (opts.method || 'GET').toUpperCase();
+        if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+            opts.headers = Object.assign({'X-CSRFToken': csrfToken}, opts.headers || {});
+        }
+        return _origFetch(url, opts);
+    };
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+{% extends "base_admin.html" %}
+{% block admin_title %}Hồ sơ người dùng{% endblock %}
+
+{% block admin_content %}
+<div class="adm-page-head">
+    <div style="display:flex;align-items:center;gap:12px;">
+        <a href="{{ url_for('admin_users') }}" class="adm-btn adm-btn-ghost adm-btn-sm">← Quay lại</a>
+        <div>
+            <h1>👤 Hồ sơ: {{ user["full_name"] or user["username"] }}</h1>
+            <p>@{{ user["username"] }} • ID #{{ user["id"] }} • Tham gia {{ user["created_at"][:10] if user["created_at"] else "?" }}</p>
+        </div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start;">
+
+<!-- LEFT: Info + Edit -->
+<div style="display:flex;flex-direction:column;gap:20px;">
+
+    <!-- Avatar + stats -->
+    <div class="adm-card" style="text-align:center;">
+        <div style="width:64px;height:64px;border-radius:50%;background:#1e293b;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#3b82f6;margin:0 auto 12px;">
+            {{ (user["full_name"] or user["username"] or "?")[0]|upper }}
+        </div>
+        <div style="font-size:18px;font-weight:800;color:#e2e8f0;">{{ user["full_name"] or "—" }}</div>
+        <div style="font-size:13px;color:#94a3b8;">@{{ user["username"] }}</div>
+        <div style="margin-top:8px;">
+            {% if user['role'] == 'admin' %}
+            <span class="adm-badge adm-badge-info">🛡️ Admin</span>
+            {% elif user['role'] == 'moderator' %}
+            <span class="adm-badge adm-badge-warning">⚖️ Mod</span>
+            {% else %}
+            <span class="adm-badge adm-badge-hidden">👤 User</span>
+            {% endif %}
+            {% if user['is_locked'] %}
+            <span class="adm-badge adm-badge-rejected">🔒 Bị khóa</span>
+            {% endif %}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;text-align:left;">
+            <div style="background:#1e293b;border-radius:8px;padding:10px;">
+                <div style="font-size:20px;font-weight:800;color:#3b82f6;">{{ stats.total_posts }}</div>
+                <div style="font-size:11px;color:#94a3b8;">Tổng bài</div>
+            </div>
+            <div style="background:#1e293b;border-radius:8px;padding:10px;">
+                <div style="font-size:20px;font-weight:800;color:#16a34a;">{{ stats.active_posts }}</div>
+                <div style="font-size:11px;color:#94a3b8;">Đang hiển thị</div>
+            </div>
+            <div style="background:#1e293b;border-radius:8px;padding:10px;">
+                <div style="font-size:20px;font-weight:800;color:#7c3aed;">{{ stats.total_claims }}</div>
+                <div style="font-size:11px;color:#94a3b8;">Claims gửi</div>
+            </div>
+            <div style="background:#1e293b;border-radius:8px;padding:10px;">
+                <div style="font-size:18px;font-weight:800;color:#f59e0b;">{{ "{:,}".format(stats.total_paid) }}đ</div>
+                <div style="font-size:11px;color:#94a3b8;">Đã thanh toán</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit info -->
+    <div class="adm-card">
+        <div class="adm-card-title">✏️ Sửa thông tin</div>
+        <form method="POST" action="{{ url_for('admin_user_edit', user_id=user['id']) }}">
+            <div class="adm-form-group">
+                <label class="adm-form-label">Họ và tên</label>
+                <input type="text" name="full_name" class="adm-form-input" value="{{ user['full_name'] or '' }}" required>
+            </div>
+            <div class="adm-form-group">
+                <label class="adm-form-label">Email</label>
+                <input type="email" name="email" class="adm-form-input" value="{{ user['email'] or '' }}">
+            </div>
+            <div class="adm-form-group">
+                <label class="adm-form-label">Quyền</label>
+                <select name="role" class="adm-form-input">
+                    <option value="user" {{ 'selected' if user['role']=='user' }}>👤 User</option>
+                    <option value="moderator" {{ 'selected' if user['role']=='moderator' }}>⚖️ Moderator</option>
+                    <option value="admin" {{ 'selected' if user['role']=='admin' }}>🛡️ Admin</option>
+                </select>
+            </div>
+            <button type="submit" class="adm-btn adm-btn-primary" style="width:100%;">💾 Lưu thay đổi</button>
+        </form>
+    </div>
+
+    <!-- Reset password -->
+    <div class="adm-card">
+        <div class="adm-card-title">🔑 Đặt lại mật khẩu</div>
+        <form method="POST" action="{{ url_for('admin_reset_password', user_id=user['id']) }}">
+            <div class="adm-form-group">
+                <label class="adm-form-label">Mật khẩu mới (tối thiểu 6 ký tự)</label>
+                <input type="text" name="new_password" class="adm-form-input" placeholder="Nhập mật khẩu mới..." required>
+            </div>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#94a3b8;margin-bottom:12px;cursor:pointer;">
+                <input type="checkbox" name="force_change" value="1" style="width:16px;height:16px;accent-color:#f59e0b;">
+                Yêu cầu đổi mật khẩu khi đăng nhập tiếp theo
+            </label>
+            <button type="submit" class="adm-btn adm-btn-warning" style="width:100%;">🔑 Đặt lại mật khẩu</button>
+        </form>
+    </div>
+
+    <!-- Danger zone -->
+    {% if user['id'] != session.get('user_id') %}
+    <div class="adm-card" style="border:1px solid #7f1d1d;">
+        <div class="adm-card-title" style="color:#ef4444;">⚠️ Vùng nguy hiểm</div>
+        <form method="POST" action="{{ url_for('admin_delete_user', user_id=user['id']) }}">
+            <div class="adm-form-group">
+                <label class="adm-form-label">Xử lý bài đăng khi xóa</label>
+                <select name="handle_posts" class="adm-form-input">
+                    <option value="keep">Giữ lại bài đăng</option>
+                    <option value="delete">Xóa toàn bộ bài đăng</option>
+                </select>
+            </div>
+            <button type="button" class="adm-btn adm-btn-danger" style="width:100%;"
+                onclick="admConfirm('Xóa vĩnh viễn tài khoản @{{ user.username }}?', this.closest('form'), {danger:true,icon:'🗑️',okLabel:'Xóa vĩnh viễn',sub:'Không thể hoàn tác!'})">
+                🗑️ Xóa tài khoản này
+            </button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<!-- RIGHT: posts, payments, claims -->
+<div style="display:flex;flex-direction:column;gap:20px;">
+
+    <!-- Posts -->
+    <div class="adm-card">
+        <div class="adm-card-title">📝 Bài đăng ({{ posts|length }})</div>
+        {% if posts %}
+        <div class="adm-table-wrap">
+            <table class="adm-table">
+                <thead><tr><th>ID</th><th>Tiêu đề</th><th>Loại</th><th>Trạng thái</th><th>Ngày</th></tr></thead>
+                <tbody>
+                    {% for p in posts[:20] %}
+                    <tr>
+                        <td><span style="color:#94a3b8;font-size:11px;">#{{ p["id"] }}</span></td>
+                        <td>
+                            <a href="{{ url_for('post_detail', post_id=p['id']) }}" target="_blank" style="color:#60a5fa;font-weight:600;font-size:13px;">
+                                {{ (p["title"] or "")[:40] }}{% if p["title"] and p["title"]|length > 40 %}…{% endif %}
+                            </a>
+                        </td>
+                        <td>
+                            {% if p['post_type']=='lost' %}
+                            <span class="adm-badge adm-badge-rejected" style="font-size:9px;">MẤT</span>
+                            {% else %}
+                            <span class="adm-badge adm-badge-active" style="font-size:9px;">NHẶT</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="adm-badge adm-badge-hidden" style="font-size:9px;">{{ p["status"] }}</span></td>
+                        <td style="font-size:11px;color:#64748b;">{{ p["created_at"][:10] if p["created_at"] else "—" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if posts|length > 20 %}
+        <div style="text-align:center;padding:8px;font-size:12px;color:#94a3b8;">… và {{ posts|length - 20 }} bài khác</div>
+        {% endif %}
+        {% else %}
+        <div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px;">Chưa có bài đăng nào.</div>
+        {% endif %}
+    </div>
+
+    <!-- Payments -->
+    <div class="adm-card">
+        <div class="adm-card-title">💳 Giao dịch ({{ payments|length }})</div>
+        {% if payments %}
+        <div class="adm-table-wrap">
+            <table class="adm-table">
+                <thead><tr><th>ID</th><th>Bài đăng</th><th>Số tiền</th><th>Trạng thái</th><th>Ngày</th></tr></thead>
+                <tbody>
+                    {% for py in payments %}
+                    <tr>
+                        <td><span style="color:#94a3b8;font-size:11px;">#{{ py["id"] }}</span></td>
+                        <td style="font-size:12px;color:#cbd5e1;">{{ (py["title"] or "Bài đã xóa")[:35] }}</td>
+                        <td style="font-weight:700;color:#16a34a;">{{ "{:,}".format(py['amount']) }}đ</td>
+                        <td>
+                            {% if py['status']=='paid' %}
+                            <span class="adm-badge adm-badge-active" style="font-size:9px;">✅ Paid</span>
+                            {% elif py['status']=='pending' %}
+                            <span class="adm-badge adm-badge-pending" style="font-size:9px;">⏳ Chờ</span>
+                            {% else %}
+                            <span class="adm-badge adm-badge-rejected" style="font-size:9px;">❌ Từ chối</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size:11px;color:#64748b;">{{ py["created_at"][:10] if py["created_at"] else "—" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px;">Chưa có giao dịch nào.</div>
+        {% endif %}
+    </div>
+
+    <!-- Claims -->
+    <div class="adm-card">
+        <div class="adm-card-title">🔍 Claims gửi ({{ claims|length }})</div>
+        {% if claims %}
+        <div class="adm-table-wrap">
+            <table class="adm-table">
+                <thead><tr><th>ID</th><th>Bài nhặt</th><th>Điểm AI</th><th>Trạng thái</th><th>Ngày</th></tr></thead>
+                <tbody>
+                    {% for c in claims %}
+                    <tr>
+                        <td><span style="color:#94a3b8;font-size:11px;">#{{ c["id"] }}</span></td>
+                        <td style="font-size:12px;color:#cbd5e1;">{{ (c["found_title"] or "—")[:35] }}</td>
+                        <td style="font-weight:700;color:{{ '#16a34a' if c['ai_score'] >= 70 else ('#d97706' if c['ai_score'] >= 50 else '#ef4444') }};">{{ c["ai_score"] }}</td>
+                        <td>
+                            {% if c['status'] in ('matched','owner_confirmed') %}
+                            <span class="adm-badge adm-badge-active" style="font-size:9px;">✅ Khớp</span>
+                            {% elif c['status']=='rejected' %}
+                            <span class="adm-badge adm-badge-rejected" style="font-size:9px;">❌ Từ chối</span>
+                            {% else %}
+                            <span class="adm-badge adm-badge-hidden" style="font-size:9px;">⏳ {{ c["status"] }}</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size:11px;color:#64748b;">{{ c["created_at"][:10] if c["created_at"] else "—" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px;">Chưa gửi claim nào.</div>
+        {% endif %}
+    </div>
+
+</div>
+</div>
+{% endblock %}

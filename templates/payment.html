@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% block title %}Thanh toán gói {{ package.name }} — PTIT Lost & Found{% endblock %}
+
+{% block content %}
+{% set pkg_colors = {'goi_1': '#3b82f6', 'goi_2': '#f97316', 'goi_3': '#a855f7'} %}
+{% set pkg_color = pkg_colors.get(package_key, '#16a34a') %}
+
+<div style="max-width:900px; margin:0 auto;">
+
+    <!-- Header -->
+    <div style="margin-bottom:22px;">
+        <a href="{{ url_for('pricing') }}" style="font-size:13px;color:#64748b;text-decoration:none;display:inline-flex;align-items:center;gap:5px;margin-bottom:10px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+            Quay lại gói dịch vụ
+        </a>
+        <h1 style="font-size:22px;font-weight:800;color:#0f172a;">💳 Thanh toán gói VIP</h1>
+    </div>
+
+    <div class="pay-layout">
+
+        <!-- LEFT: Form + Bank info -->
+        <div class="pay-left">
+
+            <!-- Package summary -->
+            <div class="pay-pkg-banner" style="border-left:4px solid {{ pkg_color }};">
+                <div class="pay-pkg-icon" style="background:{{ pkg_color }}20; color:{{ pkg_color }};">⚡</div>
+                <div>
+                    <div style="font-size:16px;font-weight:800;color:#0f172a;">Gói {{ package.name }}</div>
+                    <div style="font-size:13px;color:#64748b;margin-top:2px;">
+                        Ưu tiên cấp {{ package.priority }} · Hiệu lực {{ package.days }} ngày
+                    </div>
+                </div>
+                <div style="margin-left:auto;font-size:22px;font-weight:900;color:{{ pkg_color }};">
+                    {{ "{:,}".format(package.price) }}đ
+                </div>
+            </div>
+
+            <!-- Choose post -->
+            <div class="pay-section">
+                <form method="POST" id="payForm">
+                    <div class="pay-section-title">1. Chọn bài đăng muốn nâng cấp</div>
+                    <select name="post_id" id="post_id" required class="pay-select">
+                        <option value="">— Chọn bài đăng —</option>
+                        {% for post in my_posts %}
+                        <option value="{{ post.id }}">
+                            #{{ post.id }} · {{ post.title[:60] }}{% if post.title|length > 60 %}…{% endif %}
+                            ({{ "Mất đồ" if post.post_type == "lost" else "Nhặt được" }})
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <!-- Transfer info -->
+                    <div class="pay-section-title" style="margin-top:20px;">2. Thông tin chuyển khoản</div>
+
+                    <div class="pay-info-grid">
+                        <div class="pay-info-row">
+                            <span class="pay-info-label">Ngân hàng</span>
+                            <span class="pay-info-val">
+                                <span class="pay-bank-chip">🏦 {{ bank_name }}</span>
+                            </span>
+                        </div>
+                        <div class="pay-info-row">
+                            <span class="pay-info-label">Số tài khoản</span>
+                            <div class="pay-info-val" style="display:flex;align-items:center;gap:8px;">
+                                <strong>{{ account_number }}</strong>
+                                <button type="button" class="copy-btn" onclick="copyText('{{ account_number }}', this)">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="pay-info-row">
+                            <span class="pay-info-label">Chủ tài khoản</span>
+                            <strong class="pay-info-val">{{ account_name }}</strong>
+                        </div>
+                        <div class="pay-info-row">
+                            <span class="pay-info-label">Số tiền</span>
+                            <strong class="pay-info-val" style="color:{{ pkg_color }};font-size:18px;">{{ "{:,}".format(package.price) }} VNĐ</strong>
+                        </div>
+                        <div class="pay-info-row" style="background:#fef3c7;border-radius:10px;padding:12px 14px;">
+                            <span class="pay-info-label" style="color:#92400e;">Nội dung CK <span style="color:#ef4444;">*</span></span>
+                            <div class="pay-info-val" style="display:flex;align-items:center;gap:8px;">
+                                <strong id="tc-text" style="color:#b45309;">— Chọn bài đăng —</strong>
+                                <button type="button" class="copy-btn" onclick="copyTC(this)">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Steps -->
+                    <div class="pay-steps">
+                        <div class="pay-step"><span class="pay-step-num">1</span>Quét QR hoặc chuyển khoản thủ công theo thông tin trên</div>
+                        <div class="pay-step"><span class="pay-step-num">2</span>Nhập đúng nội dung chuyển khoản: <strong id="tc-step2">— Chọn bài đăng —</strong></div>
+                        <div class="pay-step"><span class="pay-step-num">3</span>Bấm "Xác nhận đã chuyển khoản" — admin sẽ duyệt trong vòng 24h</div>
+                    </div>
+
+                    <div style="display:flex;gap:10px;margin-top:18px;">
+                        <button type="button"
+                            onclick="confirmPay(this)"
+                            class="btn primary" style="flex:1;padding:12px;font-size:15px;">
+                            ✅ Tôi đã chuyển khoản
+                        </button>
+                        <a href="{{ url_for('pricing') }}" class="btn ghost" style="padding:12px 18px;">Huỷ</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- RIGHT: QR Code -->
+        <div class="pay-right">
+            <div class="pay-qr-card">
+                <div class="pay-qr-header" style="background:{{ pkg_color }};">
+                    <div style="font-weight:800;font-size:15px;">Quét QR để thanh toán</div>
+                    <div style="font-size:12px;opacity:0.88;margin-top:3px;">Tự điền số tiền & nội dung</div>
+                </div>
+                <div class="pay-qr-body">
+                    <img
+                        id="qr-img"
+                        src="https://img.vietqr.io/image/MB-{{ account_number }}-compact2.png?amount={{ package.price }}&accountName={{ account_name | urlencode }}"
+                        alt="QR Chuyển khoản"
+                        class="pay-qr-img"
+                        onerror="this.style.display='none';document.getElementById('qrErr').style.display='flex'">
+                    <div id="qrErr" style="display:none;width:200px;height:200px;border:2px dashed #e2e8f0;border-radius:12px;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:#94a3b8;font-size:12px;text-align:center;">
+                        <div style="font-size:28px;">📷</div>
+                        Không tải được QR<br>
+                        <a href="https://img.vietqr.io/image/MB-{{ account_number }}-compact2.png" target="_blank" style="color:#3b82f6;font-size:11px;">Thử lại</a>
+                    </div>
+                    <div style="margin-top:12px;text-align:center;font-size:12px;color:#64748b;line-height:1.6;">
+                        <strong style="color:#0f172a;font-size:13px;">{{ account_name }}</strong><br>
+                        {{ bank_name }} · {{ account_number }}
+                    </div>
+                    <div class="pay-qr-amount" style="color:{{ pkg_color }};">
+                        {{ "{:,}".format(package.price) }} VNĐ
+                    </div>
+                    <!-- VietQR branding -->
+                    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid #f1f5f9;">
+                        <span style="font-size:10px;color:#94a3b8;font-weight:600;">Powered by</span>
+                        <span style="font-size:12px;font-weight:800;color:#dc2626;">VIET</span><span style="font-size:12px;font-weight:800;color:#1d4ed8;">QR</span>
+                        <span style="font-size:10px;color:#94a3b8;">· napas 247</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warning note -->
+            <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:14px;margin-top:14px;font-size:12px;color:#92400e;line-height:1.6;">
+                <strong>⚠️ Lưu ý:</strong> Nhập đúng nội dung chuyển khoản
+                <strong id="tc-warn">"— Chọn bài đăng —"</strong> để admin xác nhận tự động.
+                Sai nội dung sẽ không được duyệt.
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+var TC_PKG  = "{{ package_key }}";
+var TC_USER = "{{ transfer_username }}";
+var TC_ACCT = "{{ account_number }}";
+var TC_PRICE = {{ package.price }};
+var TC_ACCT_NAME = "{{ account_name }}";
+var TC_BANK_ID = "MB";
+
+function getTCValue() {
+    var pid = document.getElementById('post_id').value;
+    if (!pid) return null;
+    return "LF-" + pid + "-" + TC_PKG + "-" + TC_USER;
+}
+
+function updateTC() {
+    var val = getTCValue();
+    var placeholder = "— Chọn bài đăng —";
+    document.getElementById('tc-text').textContent = val || placeholder;
+    document.getElementById('tc-step2').textContent = val || placeholder;
+    document.getElementById('tc-warn').textContent = val ? ('"' + val + '"') : ('"' + placeholder + '"');
+    var qrImg = document.getElementById('qr-img');
+    if (qrImg) {
+        var base = "https://img.vietqr.io/image/" + TC_BANK_ID + "-" + TC_ACCT + "-compact2.png"
+            + "?amount=" + TC_PRICE + "&accountName=" + encodeURIComponent(TC_ACCT_NAME);
+        qrImg.src = val ? (base + "&addInfo=" + encodeURIComponent(val)) : base;
+        qrImg.style.display = '';
+        document.getElementById('qrErr').style.display = 'none';
+    }
+}
+
+function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(function() {
+        var orig = btn.innerHTML;
+        btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+        setTimeout(function() { btn.innerHTML = orig; }, 1800);
+    });
+}
+
+function copyTC(btn) {
+    var val = getTCValue();
+    if (!val) { alert('Vui lòng chọn bài đăng trước.'); return; }
+    copyText(val, btn);
+}
+
+function confirmPay(btn) {
+    var val = getTCValue();
+    if (!val) { alert('Vui lòng chọn bài đăng trước.'); return; }
+    adminConfirm('Xác nhận đã chuyển khoản?', btn.closest('form'), {
+        icon: '💳', okLabel: 'Đã chuyển khoản', okColor: '#16a34a',
+        sub: 'Nội dung: ' + val
+    });
+}
+
+document.getElementById('post_id').addEventListener('change', updateTC);
+updateTC();
+</script>
+{% endblock %}

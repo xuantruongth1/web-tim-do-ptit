@@ -1,0 +1,96 @@
+{% extends "base_admin.html" %}
+{% block admin_title %}Thông báo{% endblock %}
+
+{% block admin_content %}
+<div class="adm-page-head">
+    <h1>📢 Thông báo hệ thống</h1>
+    <p>Quản lý banner thông báo hiển thị cho người dùng trên toàn trang.</p>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start;">
+
+<!-- List -->
+<div class="adm-card">
+    <div class="adm-card-title">Danh sách thông báo ({{ announcements|length }})</div>
+    {% if announcements %}
+    <div style="display:flex;flex-direction:column;gap:12px;">
+        {% for ann in announcements %}
+        {% set colors = {'info':'#3b82f6','warning':'#f59e0b','danger':'#ef4444','success':'#16a34a'} %}
+        {% set color = colors.get(ann['type'], '#3b82f6') %}
+        <div style="background:#1e293b;border-radius:10px;padding:14px 16px;border-left:4px solid {{ color }};">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+                <div style="flex:1;">
+                    <div style="font-weight:700;font-size:14px;color:#e2e8f0;">{{ ann["title"] }}</div>
+                    {% if ann["content"] %}
+                    <div style="font-size:12px;color:#94a3b8;margin-top:4px;">{{ ann["content"][:120] }}{% if ann["content"]|length > 120 %}…{% endif %}</div>
+                    {% endif %}
+                    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center;">
+                        <span class="adm-badge" style="background:{{ color }}22;color:{{ color }};font-size:9px;">{{ ann["type"]|upper }}</span>
+                        {% if ann["is_active"] %}
+                        <span class="adm-badge adm-badge-active" style="font-size:9px;">✅ Đang hiển thị</span>
+                        {% else %}
+                        <span class="adm-badge adm-badge-hidden" style="font-size:9px;">🙈 Đã ẩn</span>
+                        {% endif %}
+                        {% if ann["show_from"] or ann["show_until"] %}
+                        <span style="font-size:10px;color:#64748b;">
+                            {{ ann["show_from"][:10] if ann["show_from"] else "—" }} →
+                            {{ ann["show_until"][:10] if ann["show_until"] else "—" }}
+                        </span>
+                        {% endif %}
+                        <span style="font-size:10px;color:#64748b;">bởi {{ ann["full_name"] or "?" }}</span>
+                    </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+                    <form method="POST" action="{{ url_for('admin_announcement_toggle', ann_id=ann['id']) }}">
+                        <button type="submit" class="adm-btn adm-btn-sm {{ 'adm-btn-warning' if ann['is_active'] else 'adm-btn-success' }}" style="white-space:nowrap;">
+                            {{ '🙈 Ẩn' if ann['is_active'] else '👁 Hiện' }}
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('admin_announcement_delete', ann_id=ann['id']) }}">
+                        <button type="button" class="adm-btn adm-btn-sm adm-btn-danger"
+                            onclick="admConfirm('Xóa thông báo này?', this.closest('form'), {danger:true,icon:'🗑️',okLabel:'Xóa'})">🗑️ Xóa</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:40px;color:#94a3b8;">Chưa có thông báo nào.</div>
+    {% endif %}
+</div>
+
+<!-- Add form -->
+<div class="adm-card">
+    <div class="adm-card-title">➕ Thêm thông báo mới</div>
+    <form method="POST" action="{{ url_for('admin_announcement_add') }}">
+        <div class="adm-form-group">
+            <label class="adm-form-label">Tiêu đề <span style="color:#ef4444;">*</span></label>
+            <input type="text" name="title" class="adm-form-input" placeholder="VD: Hệ thống bảo trì..." required>
+        </div>
+        <div class="adm-form-group">
+            <label class="adm-form-label">Nội dung chi tiết (tuỳ chọn)</label>
+            <textarea name="content" class="adm-form-input" rows="3" placeholder="Mô tả thêm..." style="resize:vertical;font-family:inherit;"></textarea>
+        </div>
+        <div class="adm-form-group">
+            <label class="adm-form-label">Loại thông báo</label>
+            <select name="type" class="adm-form-input">
+                <option value="info">ℹ️ Info (xanh dương)</option>
+                <option value="warning">⚠️ Warning (vàng)</option>
+                <option value="danger">🚨 Danger (đỏ)</option>
+                <option value="success">✅ Success (xanh lá)</option>
+            </select>
+        </div>
+        <div class="adm-form-group">
+            <label class="adm-form-label">Hiển thị từ ngày (tuỳ chọn)</label>
+            <input type="datetime-local" name="show_from" class="adm-form-input">
+        </div>
+        <div class="adm-form-group">
+            <label class="adm-form-label">Hiển thị đến ngày (tuỳ chọn)</label>
+            <input type="datetime-local" name="show_until" class="adm-form-input">
+        </div>
+        <button type="submit" class="adm-btn adm-btn-primary" style="width:100%;">📢 Thêm thông báo</button>
+    </form>
+</div>
+</div>
+{% endblock %}

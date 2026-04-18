@@ -1,0 +1,326 @@
+{% extends "base_admin.html" %}
+{% block admin_title %}Bài đăng{% endblock %}
+
+{% block admin_content %}
+<div class="adm-page-head">
+    <h1>📋 Quản lý Bài đăng</h1>
+    <p>Duyệt, sửa, ẩn, xóa và quản lý VIP bài đăng.</p>
+</div>
+
+<!-- Stats tabs -->
+<div class="adm-tabs" style="margin-bottom:14px;">
+    {% set tab_items = [
+        ("Tất cả", counts.all, ""),
+        ("⏳ Chờ duyệt", counts.pending_review, "pending_review"),
+        ("✅ Active", counts.active, "active"),
+        ("⚡ VIP", counts.vip, ""),
+        ("❌ Từ chối", counts.rejected, "rejected"),
+        ("🙈 Ẩn", counts.hidden, "hidden"),
+        ("🎉 Đã xử lý", counts.resolved, "resolved"),
+    ] %}
+    {% for label, cnt, st in tab_items %}
+    <a href="{{ url_for('admin_posts', status=st, post_type=type_filter, q=search_q) }}"
+       class="adm-tab {{ 'active' if status_filter == st }}">
+        {{ label }} <span class="count">{{ cnt }}</span>
+    </a>
+    {% endfor %}
+</div>
+
+<!-- Filter bar -->
+<form method="GET" action="{{ url_for('admin_posts') }}" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+    <input type="hidden" name="status" value="{{ status_filter }}">
+    <input type="text" name="q" value="{{ search_q }}" placeholder="🔍 Tìm ID hoặc tiêu đề..."
+        style="padding:7px 12px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;flex:1;min-width:180px;">
+    <select name="post_type" style="padding:7px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;">
+        <option value="">Tất cả loại</option>
+        <option value="lost" {{ 'selected' if type_filter=='lost' }}>🔍 Mất đồ</option>
+        <option value="found" {{ 'selected' if type_filter=='found' }}>📍 Nhặt được</option>
+    </select>
+    <select name="package" style="padding:7px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;">
+        <option value="">Tất cả gói</option>
+        {% for k, pkg in vip_packages.items() %}
+        <option value="{{ k }}" {{ 'selected' if pkg_filter==k }}>{{ pkg.name }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">Lọc</button>
+    <a href="{{ url_for('admin_posts') }}" class="adm-btn adm-btn-ghost adm-btn-sm">Xóa lọc</a>
+</form>
+
+<!-- Bulk action bar -->
+<form method="POST" action="{{ url_for('admin_bulk_posts') }}" id="bulkForm">
+<div class="adm-bulk-bar">
+    <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" style="width:16px;height:16px;cursor:pointer;">
+    <label for="selectAll">Chọn tất cả</label>
+    <span style="color:#64748b;font-size:12px;">(<span id="bulkSelectedCount">0</span> đã chọn)</span>
+    <div style="flex:1;"></div>
+    <select name="action" style="padding:6px 10px;border:1px solid #bfdbfe;border-radius:7px;font-size:12px;color:#1d4ed8;background:white;">
+        <option value="">-- Chọn hành động --</option>
+        <option value="approve">✅ Duyệt tất cả</option>
+        <option value="reject">❌ Từ chối tất cả</option>
+        <option value="hide">🙈 Ẩn tất cả</option>
+        <option value="resolve">🎉 Đánh dấu đã xử lý</option>
+        <option value="delete">🗑️ Xóa tất cả</option>
+    </select>
+    <button type="button" class="adm-btn adm-btn-sm adm-btn-primary"
+        onclick="var a=bulkForm.querySelector('[name=action]').value;var c=document.querySelectorAll('.post-checkbox:checked').length;if(!a){alert('Chọn hành động!');return;}if(!c){alert('Chưa chọn bài!');return;}admConfirm('Áp dụng «'+a+'» cho '+c+' bài?',bulkForm,{danger:a==='delete',icon:a==='delete'?'🗑️':'⚡',okLabel:'Xác nhận',sub:a==='delete'?'Không thể hoàn tác!':''})">
+        Áp dụng
+    </button>
+</div>
+
+<!-- Table -->
+<div class="adm-table-wrap">
+    <table class="adm-table" style="min-width:1100px;">
+        <thead>
+            <tr>
+                <th style="width:36px;"></th>
+                <th>ID</th><th>Tiêu đề</th><th>Loại</th><th>Người đăng</th>
+                <th>Trạng thái</th><th>Gói VIP</th><th>Ưu tiên</th>
+                <th>Hết hạn VIP</th><th>Ngày tạo</th>
+                <th style="min-width:260px;">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in posts %}
+        <tr style="{{ 'background:#fefce8;' if p.status == 'pending_review' else '' }}">
+            <td><input type="checkbox" name="post_ids" value="{{ p.id }}" class="post-checkbox" style="width:15px;height:15px;"></td>
+            <td style="color:#94a3b8;font-size:12px;">#{{ p.id }}</td>
+            <td style="max-width:220px;">
+                <a href="{{ url_for('post_detail', post_id=p.id) }}" target="_blank"
+                    style="color:#0f172a;font-weight:600;font-size:13px;text-decoration:none;">
+                    {{ p.title[:50] }}{% if p.title|length > 50 %}…{% endif %}
+                </a>
+                {% if p.label %}
+                <div style="margin-top:3px;">
+                    <span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;">{{ p.label }}</span>
+                </div>
+                {% endif %}
+                {% if p.is_pinned %}
+                <div style="margin-top:2px;font-size:10px;color:#7c3aed;font-weight:700;">📌 Đang ghim</div>
+                {% endif %}
+                {% if p.status == 'pending_review' and p.pay_id %}
+                <div style="margin-top:5px;display:flex;align-items:center;gap:5px;">
+                    {% if p.payment_proof %}
+                    <a href="{{ url_for('static', filename='uploads/' + p.payment_proof) }}" target="_blank">
+                        <img src="{{ url_for('static', filename='uploads/' + p.payment_proof) }}"
+                             style="width:36px;height:36px;object-fit:cover;border-radius:4px;border:1px solid #e2e8f0;">
+                    </a>
+                    {% endif %}
+                    <div style="font-size:11px;">
+                        <div style="color:#16a34a;font-weight:700;">{{ "{:,}".format(p.pay_amount or 0) }}đ</div>
+                        <div style="color:#94a3b8;font-family:monospace;font-size:9px;">{{ p.transfer_content or '' }}</div>
+                    </div>
+                </div>
+                {% endif %}
+            </td>
+            <td>
+                {% if p.post_type == 'lost' %}
+                <span class="adm-badge adm-badge-rejected">🔍 Mất</span>
+                {% else %}
+                <span class="adm-badge adm-badge-active">📍 Nhặt</span>
+                {% endif %}
+            </td>
+            <td style="font-size:12px;">
+                {{ p.full_name or '—' }}<br>
+                <span style="color:#94a3b8;">@{{ p.username or '' }}</span>
+            </td>
+            <td>
+                {% if p.status == 'pending_review' %}<span class="adm-badge adm-badge-pending">⏳ Chờ duyệt</span>
+                {% elif p.status == 'active' %}<span class="adm-badge adm-badge-active">✅ Active</span>
+                {% elif p.status == 'rejected' %}<span class="adm-badge adm-badge-rejected">❌ Từ chối</span>
+                {% elif p.status == 'hidden' %}<span class="adm-badge adm-badge-hidden">🙈 Ẩn</span>
+                {% elif p.status == 'resolved' %}<span class="adm-badge adm-badge-resolved">🎉 Xử lý</span>
+                {% else %}<span class="adm-badge adm-badge-hidden">{{ p.status }}</span>{% endif %}
+            </td>
+            <td>
+                {% if p.package_key %}
+                {% set pkg = vip_packages.get(p.package_key, {}) %}
+                <span class="adm-badge adm-badge-info">⚡ {{ pkg.get('name', p.package_key) }}</span>
+                {% else %}<span style="color:#cbd5e1;font-size:11px;">—</span>{% endif %}
+            </td>
+            <td style="text-align:center;">
+                {% if p.priority > 0 %}
+                <span class="adm-badge adm-badge-warning">P{{ p.priority }}</span>
+                {% else %}<span style="color:#cbd5e1;font-size:11px;">0</span>{% endif %}
+            </td>
+            <td style="font-size:11px;color:{{ '#dc2626' if p.vip_expires_at and p.vip_expires_at < now_str else '#15803d' }};">
+                {{ p.vip_expires_at[:10] if p.vip_expires_at else '—' }}
+            </td>
+            <td style="font-size:11px;color:#64748b;">{{ p.created_at[:10] }}</td>
+            <td>
+                <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                    {% if p.status == 'pending_review' %}
+                    <form method="POST" action="{{ url_for('admin_approve_post', post_id=p.id) }}" style="display:inline;">
+                        <button type="submit" class="adm-btn adm-btn-sm adm-btn-success">✅ Duyệt</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('admin_reject_post', post_id=p.id) }}" style="display:inline;">
+                        <button type="button" class="adm-btn adm-btn-sm adm-btn-danger"
+                            onclick="admConfirm('Từ chối bài #{{ p.id }}?', this.closest('form'), {danger:true,icon:'❌',okLabel:'Từ chối'})">❌</button>
+                    </form>
+                    {% endif %}
+                    {% if p.status == 'active' %}
+                    <form method="POST" action="{{ url_for('admin_hide_post', post_id=p.id) }}" style="display:inline;">
+                        <button type="button" class="adm-btn adm-btn-sm adm-btn-ghost"
+                            onclick="admConfirm('Ẩn bài #{{ p.id }}?', this.closest('form'), {icon:'🙈',okLabel:'Ẩn',okColor:'#f59e0b'})">🙈</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('admin_mark_resolved', post_id=p.id) }}" style="display:inline;">
+                        <button type="submit" class="adm-btn adm-btn-sm adm-btn-ghost" style="font-size:11px;">🎉 Xử lý</button>
+                    </form>
+                    {% endif %}
+                    {% if p.status in ('hidden', 'rejected') %}
+                    <form method="POST" action="{{ url_for('admin_reactivate_post', post_id=p.id) }}" style="display:inline;">
+                        <button type="submit" class="adm-btn adm-btn-sm adm-btn-ghost" style="color:#1d4ed8;">♻️</button>
+                    </form>
+                    {% endif %}
+                    <a href="{{ url_for('edit_post', post_id=p.id) }}" class="adm-btn adm-btn-sm adm-btn-ghost" style="color:#1d4ed8;">✏️</a>
+                    <button type="button" class="adm-btn adm-btn-sm adm-btn-ghost" style="color:#7c3aed;"
+                        onclick="openVipModal({{ p.id }}, '{{ p.package_key or '' }}', '{{ p.vip_expires_at[:10] if p.vip_expires_at else '' }}', {{ p.priority }})">⚡ VIP</button>
+                    <button type="button" class="adm-btn adm-btn-sm adm-btn-ghost" onclick="openLabelModal({{ p.id }}, '{{ p.label or '' }}')">🏷️</button>
+                    {% if p.is_pinned %}
+                    <form method="POST" action="{{ url_for('admin_unpin_post', post_id=p.id) }}" style="display:inline;">
+                        <button type="submit" class="adm-btn adm-btn-sm adm-btn-ghost" style="color:#7c3aed;">📌 Bỏ ghim</button>
+                    </form>
+                    {% else %}
+                    <button type="button" class="adm-btn adm-btn-sm adm-btn-ghost" onclick="openPinModal({{ p.id }})">📌 Ghim</button>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('admin_delete_post', post_id=p.id) }}" style="display:inline;">
+                        <button type="button" class="adm-btn adm-btn-sm adm-btn-danger"
+                            onclick="admConfirm('XÓA vĩnh viễn bài #{{ p.id }}?', this.closest('form'), {danger:true,icon:'🗑️',okLabel:'Xóa',sub:'Không thể hoàn tác!'})">🗑️</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="11" style="text-align:center;padding:40px;color:#94a3b8;">Không có bài đăng nào.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+</form>
+
+<!-- VIP Modal -->
+<div id="vipModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;padding:24px;width:380px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.18);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="font-size:16px;font-weight:800;color:#0f172a;">⚡ VIP — Bài #<span id="vipPostId"></span></h3>
+            <button onclick="closeVipModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8;">×</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+            <form id="vipExtendForm" method="POST" style="background:#f8fafc;border-radius:8px;padding:12px;">
+                <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:7px;">📅 Gia hạn VIP</div>
+                <div style="display:flex;gap:6px;">
+                    <select name="days" class="adm-form-input adm-form-select" style="flex:1;">
+                        <option value="1">+1 ngày</option><option value="3">+3 ngày</option>
+                        <option value="7" selected>+7 ngày</option><option value="30">+30 ngày</option>
+                    </select>
+                    <button type="submit" class="adm-btn adm-btn-sm adm-btn-primary">Gia hạn</button>
+                </div>
+            </form>
+            <form id="vipPackageForm" method="POST" style="background:#f8fafc;border-radius:8px;padding:12px;">
+                <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:7px;">🔄 Đổi gói</div>
+                <div style="display:flex;gap:6px;">
+                    <select name="package_key" class="adm-form-input adm-form-select" style="flex:1;">
+                        <option value="free">🔻 Về tin thường</option>
+                        {% for k, pkg in vip_packages.items() %}
+                        <option value="{{ k }}">⚡ {{ pkg.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" class="adm-btn adm-btn-sm adm-btn-primary"
+                        onclick="admConfirm('Đổi gói VIP?', this.closest('form'), {icon:'⚡',okLabel:'Đổi',okColor:'#7c3aed'})">Đổi</button>
+                </div>
+            </form>
+            <form id="vipExpiryForm" method="POST" style="background:#f8fafc;border-radius:8px;padding:12px;">
+                <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:7px;">📆 Sửa ngày hết hạn</div>
+                <div style="display:flex;gap:6px;">
+                    <input type="date" id="vipExpiryInput" name="expiry_date" class="adm-form-input" style="flex:1;">
+                    <button type="submit" class="adm-btn adm-btn-sm adm-btn-primary">Lưu</button>
+                </div>
+            </form>
+            <!-- Tặng VIP miễn phí -->
+            <form id="vipGrantForm" method="POST" action="{{ url_for('admin_vip_grant') }}" style="background:#f0fdf4;border-radius:8px;padding:12px;border:1px solid #bbf7d0;">
+                <div style="font-size:12px;font-weight:700;color:#15803d;margin-bottom:7px;">🎁 Tặng VIP miễn phí</div>
+                <input type="hidden" name="post_id" id="vipGrantPostId">
+                <div style="display:flex;gap:6px;margin-bottom:6px;">
+                    <select name="package_key" class="adm-form-input adm-form-select" style="flex:1;">
+                        {% for k, pkg in vip_packages.items() %}
+                        <option value="{{ k }}">{{ pkg.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <input type="text" name="reason" placeholder="Lý do tặng..." class="adm-form-input" style="margin-bottom:6px;">
+                <button type="submit" class="adm-btn adm-btn-sm adm-btn-success" style="width:100%;">🎁 Tặng VIP</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Label Modal -->
+<div id="labelModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;padding:20px;width:320px;">
+        <h3 style="font-size:15px;font-weight:800;margin-bottom:12px;">🏷️ Gắn nhãn bài #<span id="labelPostId"></span></h3>
+        <form id="labelForm" method="POST">
+            <select name="label" class="adm-form-input adm-form-select" style="margin-bottom:10px;">
+                <option value="">-- Xóa nhãn --</option>
+                <option value="Cần xác minh">Cần xác minh</option>
+                <option value="Nghi ngờ spam">Nghi ngờ spam</option>
+                <option value="Đã liên hệ">Đã liên hệ</option>
+                <option value="Ưu tiên cao">Ưu tiên cao</option>
+            </select>
+            <div style="display:flex;gap:8px;">
+                <button type="submit" class="adm-btn adm-btn-primary" style="flex:1;">Lưu nhãn</button>
+                <button type="button" class="adm-btn adm-btn-ghost" onclick="document.getElementById('labelModalOverlay').style.display='none'">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Pin Modal -->
+<div id="pinModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;padding:20px;width:320px;">
+        <h3 style="font-size:15px;font-weight:800;margin-bottom:12px;">📌 Ghim bài #<span id="pinPostId"></span></h3>
+        <form id="pinForm" method="POST">
+            <div class="adm-form-group">
+                <label class="adm-form-label">Hết hạn ghim (để trống = vĩnh viễn)</label>
+                <input type="datetime-local" name="pin_expires_at" class="adm-form-input">
+            </div>
+            <div style="display:flex;gap:8px;">
+                <button type="submit" class="adm-btn adm-btn-primary" style="flex:1;">📌 Ghim bài</button>
+                <button type="button" class="adm-btn adm-btn-ghost" onclick="document.getElementById('pinModalOverlay').style.display='none'">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block admin_extra_js %}
+<script>
+function openVipModal(postId, pkgKey, expiryDate, priority) {
+    document.getElementById('vipPostId').textContent = postId;
+    document.getElementById('vipGrantPostId').value = postId;
+    document.getElementById('vipExtendForm').action  = '/admin/vip/extend/' + postId;
+    document.getElementById('vipPackageForm').action = '/admin/vip/change-package/' + postId;
+    document.getElementById('vipExpiryForm').action  = '/admin/vip/set-expiry/' + postId;
+    if (expiryDate) document.getElementById('vipExpiryInput').value = expiryDate;
+    document.getElementById('vipModalOverlay').style.display = 'flex';
+}
+function closeVipModal() { document.getElementById('vipModalOverlay').style.display = 'none'; }
+function openLabelModal(postId, currentLabel) {
+    document.getElementById('labelPostId').textContent = postId;
+    document.getElementById('labelForm').action = '/admin/post/' + postId + '/label';
+    var sel = document.querySelector('#labelForm select[name="label"]');
+    if (sel && currentLabel) sel.value = currentLabel;
+    document.getElementById('labelModalOverlay').style.display = 'flex';
+}
+function openPinModal(postId) {
+    document.getElementById('pinPostId').textContent = postId;
+    document.getElementById('pinForm').action = '/admin/post/' + postId + '/pin';
+    document.getElementById('pinModalOverlay').style.display = 'flex';
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeVipModal();
+        document.getElementById('labelModalOverlay').style.display = 'none';
+        document.getElementById('pinModalOverlay').style.display = 'none';
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

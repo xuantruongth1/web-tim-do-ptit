@@ -1,0 +1,41 @@
+{% extends "base_admin.html" %}
+{% block admin_title %}Gửi email hàng loạt{% endblock %}
+
+{% block admin_content %}
+<div class="adm-page-head">
+    <h1>📧 Gửi Email Hàng loạt</h1>
+    <p>Gửi email thông báo tới nhóm người dùng được chọn.</p>
+</div>
+
+<div style="max-width:680px;">
+<div class="adm-card">
+    <div class="adm-card-title">✉️ Soạn email</div>
+    <form method="POST" action="{{ url_for('admin_bulk_email') }}">
+        <div class="adm-form-group">
+            <label class="adm-form-label">Đối tượng gửi</label>
+            <select name="target" class="adm-form-input">
+                <option value="all">👥 Tất cả người dùng (có email)</option>
+                <option value="no_post">📭 Người dùng chưa đăng bài</option>
+            </select>
+        </div>
+        <div class="adm-form-group">
+            <label class="adm-form-label">Tiêu đề email <span style="color:#ef4444;">*</span></label>
+            <input type="text" name="subject" class="adm-form-input" placeholder="VD: Thông báo từ PTIT Lost & Found" required>
+        </div>
+        <div class="adm-form-group">
+            <label class="adm-form-label">Nội dung HTML <span style="color:#ef4444;">*</span></label>
+            <textarea name="html_body" class="adm-form-input" rows="12" required
+                style="font-family:monospace;font-size:12px;resize:vertical;"
+                placeholder="<h2>Xin chào!</h2><p>Nội dung email...</p>"></textarea>
+        </div>
+        <div style="background:#1e293b;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:#94a3b8;">
+            ⚠️ <strong style="color:#f59e0b;">Lưu ý:</strong> Email sẽ được gửi ngay sau khi xác nhận. Không thể thu hồi. Hãy kiểm tra kỹ nội dung trước khi gửi.
+        </div>
+        <button type="button" class="adm-btn adm-btn-primary" style="width:100%;padding:12px;"
+            onclick="admConfirm('Xác nhận gửi email hàng loạt?', this.closest('form'), {icon:'📧',okLabel:'Gửi ngay',okColor:'#3b82f6',sub:'Email sẽ được gửi tới tất cả người dùng trong nhóm đã chọn.'})">
+            📧 Gửi email
+        </button>
+    </form>
+</div>
+</div>
+{% endblock %}

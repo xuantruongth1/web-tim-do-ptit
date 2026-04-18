@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Đăng nhập{% endblock %}
+{% block content %}
+<div class="auth-box">
+    <h1>Đăng nhập</h1>
+    <form method="post" id="loginForm" novalidate>
+        <input type="text" name="username" id="loginUsername" placeholder="Tên đăng nhập" required autocomplete="username">
+        <input type="password" name="password" id="loginPassword" placeholder="Mật khẩu" required autocomplete="current-password">
+        <button type="submit" class="btn primary full">Đăng nhập</button>
+    </form>
+    <p class="hint">Chưa có tài khoản? <a href="{{ url_for('register') }}">Đăng ký ngay</a></p>
+</div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    var username = document.getElementById('loginUsername').value.trim();
+    var password = document.getElementById('loginPassword').value;
+    if (!username) { e.preventDefault(); showAuthToast('Vui lòng nhập tên đăng nhập.', 'danger'); return; }
+    if (!password) { e.preventDefault(); showAuthToast('Vui lòng nhập mật khẩu.', 'danger'); return; }
+});
+</script>
+{% endblock %}

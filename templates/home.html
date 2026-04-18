@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% block title %}PTIT Lost & Found - Trang chủ{% endblock %}
+
+{% block content %}
+<div class="home-layout">
+    <!-- ============ MAIN CONTENT ============ -->
+    <div class="home-main">
+
+        <!-- HERO BANNER -->
+        <div class="hero-new">
+
+            <!-- Announce bar -->
+            <div style="display:flex;justify-content:center;margin-bottom:18px;">
+                <a href="{{ url_for('search') }}" class="announce-bar">
+                    <span class="announce-dot"></span>
+                    Xem các tips cần biết khi mất đồ
+                    <span class="announce-cta">Xem ngay →</span>
+                </a>
+            </div>
+
+            <h1>Kết nối ✦ Tìm kiếm ✦ Hoàn trả</h1>
+            <p class="hero-sub">
+                Website tìm đồ thất lạc <strong>#1 Việt Nam</strong>.<br>
+                Đăng tin tìm ví, điện thoại, giấy tờ, thú cưng, xe máy bị mất.
+            </p>
+
+            <!-- Category pills - scrolling ticker -->
+            <div class="hero-cat-track-wrap">
+                <div class="hero-cat-track">
+                    <a href="{{ url_for('search', keyword='phương tiện') }}" class="cat-pill"><span class="cat-pill-icon">🛵</span> Phương tiện giao thông</a>
+                    <a href="{{ url_for('search', keyword='đồ dùng') }}" class="cat-pill"><span class="cat-pill-icon">🏠</span> Đồ dùng gia đình</a>
+                    <a href="{{ url_for('search', keyword='giấy tờ') }}" class="cat-pill"><span class="cat-pill-icon">🪪</span> Ví/Giấy tờ tùy thân</a>
+                    <a href="{{ url_for('search', keyword='thú cưng') }}" class="cat-pill"><span class="cat-pill-icon">🐾</span> Thú cưng</a>
+                    <a href="{{ url_for('search', keyword='điện thoại') }}" class="cat-pill"><span class="cat-pill-icon">📱</span> Điện thoại</a>
+                    <a href="{{ url_for('search', keyword='laptop') }}" class="cat-pill"><span class="cat-pill-icon">💻</span> Laptop / Máy tính</a>
+                    <a href="{{ url_for('search', keyword='ví') }}" class="cat-pill"><span class="cat-pill-icon">👛</span> Ví tiền</a>
+                    <a href="{{ url_for('search', keyword='chìa khóa') }}" class="cat-pill"><span class="cat-pill-icon">🔑</span> Chìa khóa</a>
+                    <a href="{{ url_for('search', keyword='thẻ') }}" class="cat-pill"><span class="cat-pill-icon">💳</span> Thẻ ngân hàng</a>
+                    <a href="{{ url_for('search', keyword='balo') }}" class="cat-pill"><span class="cat-pill-icon">🎒</span> Balo / Túi xách</a>
+                    <a href="{{ url_for('search', keyword='tai nghe') }}" class="cat-pill"><span class="cat-pill-icon">🎧</span> Tai nghe</a>
+                    <a href="{{ url_for('search', keyword='đồng hồ') }}" class="cat-pill"><span class="cat-pill-icon">⌚</span> Đồng hồ</a>
+                    <!-- lặp lại để loop mượt -->
+                    <a href="{{ url_for('search', keyword='phương tiện') }}" class="cat-pill"><span class="cat-pill-icon">🛵</span> Phương tiện giao thông</a>
+                    <a href="{{ url_for('search', keyword='đồ dùng') }}" class="cat-pill"><span class="cat-pill-icon">🏠</span> Đồ dùng gia đình</a>
+                    <a href="{{ url_for('search', keyword='giấy tờ') }}" class="cat-pill"><span class="cat-pill-icon">🪪</span> Ví/Giấy tờ tùy thân</a>
+                    <a href="{{ url_for('search', keyword='thú cưng') }}" class="cat-pill"><span class="cat-pill-icon">🐾</span> Thú cưng</a>
+                    <a href="{{ url_for('search', keyword='điện thoại') }}" class="cat-pill"><span class="cat-pill-icon">📱</span> Điện thoại</a>
+                    <a href="{{ url_for('search', keyword='laptop') }}" class="cat-pill"><span class="cat-pill-icon">💻</span> Laptop / Máy tính</a>
+                    <a href="{{ url_for('search', keyword='ví') }}" class="cat-pill"><span class="cat-pill-icon">👛</span> Ví tiền</a>
+                    <a href="{{ url_for('search', keyword='chìa khóa') }}" class="cat-pill"><span class="cat-pill-icon">🔑</span> Chìa khóa</a>
+                    <a href="{{ url_for('search', keyword='thẻ') }}" class="cat-pill"><span class="cat-pill-icon">💳</span> Thẻ ngân hàng</a>
+                    <a href="{{ url_for('search', keyword='balo') }}" class="cat-pill"><span class="cat-pill-icon">🎒</span> Balo / Túi xách</a>
+                    <a href="{{ url_for('search', keyword='tai nghe') }}" class="cat-pill"><span class="cat-pill-icon">🎧</span> Tai nghe</a>
+                    <a href="{{ url_for('search', keyword='đồng hồ') }}" class="cat-pill"><span class="cat-pill-icon">⌚</span> Đồng hồ</a>
+                </div>
+            </div>
+
+            <!-- Stat cards -->
+            <div class="hero-stat-cards">
+                <div class="hero-stat-card">
+                    <div class="hero-stat-card-icon">👥</div>
+                    <div>
+                        <div class="hero-stat-card-num">{{ "{:,}".format(total_users) }}+</div>
+                        <div class="hero-stat-card-label">Người dùng</div>
+                    </div>
+                </div>
+                <div class="hero-stat-card">
+                    <div class="hero-stat-card-icon">🔍</div>
+                    <div>
+                        <div class="hero-stat-card-num">{{ "{:,}".format(lost_count + found_count) }}+</div>
+                        <div class="hero-stat-card-label">Bài đăng tìm đồ</div>
+                    </div>
+                </div>
+                <div class="hero-stat-card">
+                    <div class="hero-stat-card-icon">🎉</div>
+                    <div>
+                        <div class="hero-stat-card-num">{{ "{:,}".format(resolved_count) }}+</div>
+                        <div class="hero-stat-card-label">Đồ vật đã tìm thấy</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="hero-btn-row">
+                <a href="{{ url_for('create_post') }}" class="btn-hero-primary">
+                    📝 Đăng Tin Tìm Đồ
+                </a>
+                <a href="{{ url_for('create_post') }}" class="btn-hero-success">
+                    📤 Trả Đồ Nhặt Được
+                </a>
+            </div>
+
+        </div><!-- end hero-new -->
+
+        <!-- TIN ĐĂNG ƯU TIÊN / VIP -->
+        <div class="premium-section-header">
+            <div class="premium-section-header-left">
+                <div class="premium-section-icon">⚡</div>
+                <div>
+                    <h2 class="premium-section-title">Tin đăng ưu tiên</h2>
+                    <p class="premium-section-sub">Sử dụng gói VIP — hiển thị nổi bật, tìm kiếm hiệu quả hơn</p>
+                </div>
+            </div>
+            <a href="{{ url_for('lost_posts') }}" class="premium-view-all">Xem tất cả →</a>
+        </div>
+
+        {% if urgent_posts %}
+        <div class="posts-grid">
+            {% for p in urgent_posts %}
+            <div class="pcard {% if p['priority'] == 3 %}pcard-urgent{% elif p['priority'] == 2 %}pcard-priority{% elif p['priority'] == 1 %}pcard-highlight{% endif %}">
+                {% if p['priority'] == 3 %}
+                <span class="pcard-tag tag-urgent">🔴 TÌM GẤP</span>
+                {% elif p['priority'] == 2 %}
+                <span class="pcard-tag tag-priority">🟠 ƯU TIÊN</span>
+                {% elif p['priority'] == 1 %}
+                <span class="pcard-tag tag-highlight">🔵 NỔI BẬT</span>
+                {% endif %}
+
+                {% if p['image'] %}
+                <img class="pcard-img" src="{{ url_for('static', filename='uploads/' ~ p['image']) }}" alt="ảnh">
+                {% else %}
+                <div class="pcard-img-placeholder">🔍</div>
+                {% endif %}
+
+                <div class="pcard-body">
+                    <div class="pcard-type {{ 'lost-type' if p['post_type'] == 'lost' else 'found-type' }}">
+                        {{ '🔴 MẤT ĐỒ' if p['post_type'] == 'lost' else '🟢 NHẶT ĐƯỢC' }}
+                    </div>
+                    <div class="pcard-title">{{ p['title'] }}</div>
+                    <div class="pcard-desc">{{ p['description'][:80] if p['description'] else 'Chưa có mô tả.' }}</div>
+                    <div class="pcard-meta">
+                        <span>📍 {{ p['city'] or p['location'] or 'Không rõ' }}</span>
+                        <span>⏰ {{ p['created_at'] | time_ago }}</span>
+                    </div>
+                    <div class="pcard-footer">
+                        <a href="{{ url_for('post_detail', post_id=p['id']) }}" class="pcard-btn pcard-btn-primary">Xem chi tiết</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-premium-box">
+            <div style="font-size:36px;margin-bottom:10px;">⚡</div>
+            <p>Hiện chưa có tin ưu tiên. <a href="{{ url_for('pricing') }}" style="color:#f97316;font-weight:700;">Nâng cấp bài đăng ngay →</a></p>
+        </div>
+        {% endif %}
+
+        <!-- ĐỒ NHẶT ĐƯỢC GẦN ĐÂY -->
+        <div class="section-title-bar" style="margin-top:28px;">
+            <h2>🟢 Đồ nhặt được gần đây</h2>
+            <a href="{{ url_for('found_posts') }}">Xem tất cả →</a>
+        </div>
+        <p style="font-size:13px;color:#6b7280;margin-bottom:12px;">Kiểm tra xem có phải đồ của bạn không và liên hệ để nhận lại.</p>
+
+        {% if latest_found_posts %}
+        <div class="found-grid">
+            {% for p in latest_found_posts %}
+            <a href="{{ url_for('post_detail', post_id=p['id']) }}" class="found-grid-item">
+                {% if p['image'] %}
+                <img class="found-grid-img" src="{{ url_for('static', filename='uploads/' ~ p['image']) }}" alt="ảnh">
+                {% else %}
+                <div class="found-grid-img found-grid-img-placeholder">📦</div>
+                {% endif %}
+                <div class="found-grid-body">
+                    <div class="found-grid-title">{{ p['title'] }}</div>
+                    <div class="found-grid-meta">📍 {{ p['city'] or p['location'] or 'Không rõ' }} &middot; {{ p['created_at'] | time_ago }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="background:#f0fdf4;border-radius:12px;padding:24px;text-align:center;color:#94a3b8;border:1px dashed #bbf7d0;">
+            <p style="font-size:14px;margin:0;">Chưa có tin nhặt được nào. <a href="{{ url_for('create_post') }}" style="color:#16a34a;font-weight:700;">Bạn đã nhặt được đồ? Đăng ngay!</a></p>
+        </div>
+        {% endif %}
+
+    </div><!-- end home-main -->
+
+    <!-- ============ SIDEBAR ============ -->
+    <div class="home-sidebar">
+
+        <!-- Chúc mừng - Đã tìm thấy -->
+        <div class="sidebar-widget sidebar-widget-success">
+            <div class="sidebar-widget-header sidebar-success-header">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="font-size:18px;">🎉</span>
+                    <div>
+                        <div style="font-size:13px;font-weight:800;color:#0f172a;">Chúc mừng!</div>
+                        <div style="font-size:11px;color:#6b7280;font-weight:400;">Cập nhật các bài đã trả lại</div>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-widget-body" style="padding:8px 0 0;">
+                {% if resolved_posts %}
+                    {% for p in resolved_posts %}
+                    <a href="{{ url_for('post_detail', post_id=p['id']) }}" class="resolved-item">
+                        <div class="resolved-item-img">
+                            {% if p['image'] %}
+                            <img src="{{ url_for('static', filename='uploads/' ~ p['image']) }}" alt="ảnh" style="width:42px;height:42px;border-radius:8px;object-fit:cover;">
+                            {% else %}
+                            <div style="width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,#d1fae5,#bbf7d0);display:flex;align-items:center;justify-content:center;font-size:20px;">✅</div>
+                            {% endif %}
+                        </div>
+                        <div class="resolved-item-body">
+                            <div class="resolved-item-title">{{ p['title'] }}</div>
+                            <div class="resolved-item-meta">📍 {{ p['city'] or p['location'] or 'Không rõ' }}</div>
+                            <div class="resolved-item-time">{{ p['created_at'] | time_ago }}</div>
+                        </div>
+                        <span class="resolved-badge">Đã tìm thấy</span>
+                    </a>
+                    {% endfor %}
+                    <div style="padding:10px 14px;">
+                        <a href="{{ url_for('found_posts') }}" class="btn primary full" style="display:block;text-align:center;padding:9px;font-size:13px;border-radius:10px;">Xem danh sách đầy đủ</a>
+                    </div>
+                {% else %}
+                    <div style="padding:20px 14px;text-align:center;color:#94a3b8;font-size:13px;">
+                        <div style="font-size:32px;margin-bottom:8px;">🔍</div>
+                        Chưa có bài nào được đánh dấu tìm thấy
+                    </div>
+                    <div style="padding:0 14px 14px;">
+                        <a href="{{ url_for('found_posts') }}" class="btn primary full" style="display:block;text-align:center;padding:9px;font-size:13px;border-radius:10px;">Xem đồ nhặt được</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Thống kê nhanh -->
+        <div class="sidebar-widget">
+            <div class="sidebar-widget-header">📊 Thống kê hệ thống</div>
+            <div class="sidebar-widget-body">
+                <div class="stat-row">
+                    <div class="stat-mini stat-mini-red">
+                        <div class="stat-mini-icon">🔴</div>
+                        <strong>{{ lost_count }}</strong>
+                        <span>Tin mất đồ</span>
+                    </div>
+                    <div class="stat-mini stat-mini-green">
+                        <div class="stat-mini-icon">🟢</div>
+                        <strong>{{ found_count }}</strong>
+                        <span>Đã nhặt được</span>
+                    </div>
+                    <div class="stat-mini stat-mini-blue">
+                        <div class="stat-mini-icon">👥</div>
+                        <strong>{{ total_users }}</strong>
+                        <span>Người dùng</span>
+                    </div>
+                    <div class="stat-mini stat-mini-purple">
+                        <div class="stat-mini-icon">🎉</div>
+                        <strong>{{ resolved_count }}</strong>
+                        <span>Đã hoàn trả</span>
+                    </div>
+                </div>
+                <a href="{{ url_for('create_post') }}" class="btn primary full" style="display:block;text-align:center;padding:10px;font-size:14px;border-radius:10px;margin-top:4px;">📝 Đăng tin ngay</a>
+            </div>
+        </div>
+
+        <!-- Danh mục hot -->
+        <div class="sidebar-widget">
+            <div class="sidebar-widget-header">🏷️ Tìm theo danh mục</div>
+            <div class="sidebar-widget-body" style="display:flex;flex-wrap:wrap;gap:6px;">
+                <a href="{{ url_for('search', keyword='ví', post_type='lost') }}" class="cat-tag">👛 Ví</a>
+                <a href="{{ url_for('search', keyword='CCCD', post_type='lost') }}" class="cat-tag">🪪 CCCD</a>
+                <a href="{{ url_for('search', keyword='điện thoại', post_type='lost') }}" class="cat-tag">📱 Điện thoại</a>
+                <a href="{{ url_for('search', keyword='xe', post_type='lost') }}" class="cat-tag">🛵 Xe</a>
+                <a href="{{ url_for('search', keyword='thẻ', post_type='lost') }}" class="cat-tag">💳 Thẻ</a>
+                <a href="{{ url_for('search', keyword='laptop', post_type='lost') }}" class="cat-tag">💻 Laptop</a>
+                <a href="{{ url_for('search', keyword='chìa khóa') }}" class="cat-tag">🔑 Chìa khóa</a>
+                <a href="{{ url_for('search', keyword='thú cưng') }}" class="cat-tag">🐕 Thú cưng</a>
+            </div>
+        </div>
+
+        <!-- Mẹo hữu ích -->
+        <div class="sidebar-widget">
+            <div class="sidebar-widget-header">💡 Mẹo hữu ích</div>
+            <div class="sidebar-widget-body">
+                <ul class="tips-list">
+                    <li>Đăng bài ngay sau khi mất để tăng khả năng tìm lại</li>
+                    <li>Chụp ảnh đồ vật để người tìm dễ nhận dạng hơn</li>
+                    <li>Ghi rõ thời gian và địa điểm cụ thể</li>
+                    <li>Sử dụng gói ưu tiên để bài đăng nổi bật hơn</li>
+                    <li>Theo dõi bài viết để cập nhật trạng thái</li>
+                </ul>
+            </div>
+        </div>
+
+    </div><!-- end home-sidebar -->
+</div><!-- end home-layout -->
+{% endblock %}

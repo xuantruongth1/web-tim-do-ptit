@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Gợi ý AI{% endblock %}
+{% block content %}
+<section class="section-head left">
+    <h1>Gợi ý trùng khớp
+        {% if ai_enabled %}
+            <span class="ai-badge-lg">Claude AI</span>
+        {% endif %}
+    </h1>
+    <p>
+        {% if is_admin %}
+            Hiển thị tất cả gợi ý khớp trong hệ thống (chế độ Admin).
+        {% else %}
+            Chỉ hiển thị gợi ý liên quan đến <strong>bài đăng của bạn</strong>.
+        {% endif %}
+    </p>
+</section>
+
+{% if results %}
+<div class="match-grid">
+    {% for lost_item, found_item, score in results %}
+    <div class="match-card">
+        <!-- Score badge (chỉ admin) -->
+        {% if is_admin %}
+        <div class="match-score-wrap">
+            <div class="match-score {{ 'score-high' if score >= 70 else ('score-mid' if score >= 50 else 'score-low') }}">
+                {{ score }}<span style="font-size:12px;font-weight:600;">/100</span>
+            </div>
+            <div class="match-label">
+                {% if score >= 70 %}Rất khớp
+                {% elif score >= 50 %}Khá khớp
+                {% else %}Có thể{% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Two sides -->
+        <div class="match-sides">
+            <!-- Lost side -->
+            <div class="match-side lost-side">
+                <div class="match-type-tag" style="background:#fee2e2;color:#b91c1c;">MẤT ĐỒ</div>
+                <div class="match-title">{{ lost_item['title'] }}</div>
+                <div class="match-desc">{{ (lost_item['description'] or '')[:80] }}{% if lost_item['description'] and lost_item['description']|length > 80 %}…{% endif %}</div>
+                <div class="match-meta">
+                    <span>📂 {{ lost_item['category'] }}</span>
+                    <span>📍 {{ lost_item['city'] or lost_item['location'] or 'Không rõ' }}</span>
+                </div>
+                <a href="{{ url_for('post_detail', post_id=lost_item['id']) }}" class="match-link">Xem bài đăng →</a>
+            </div>
+
+            <div class="match-arrow">⇄</div>
+
+            <!-- Found side -->
+            <div class="match-side found-side">
+                <div class="match-type-tag" style="background:#dcfce7;color:#15803d;">NHẶT ĐƯỢC</div>
+                <div class="match-title">{{ found_item['title'] }}</div>
+                <div class="match-desc">{{ (found_item['description'] or '')[:80] }}{% if found_item['description'] and found_item['description']|length > 80 %}…{% endif %}</div>
+                <div class="match-meta">
+                    <span>📂 {{ found_item['category'] }}</span>
+                    <span>📍 {{ found_item['city'] or found_item['location'] or 'Không rõ' }}</span>
+                </div>
+                <a href="{{ url_for('post_detail', post_id=found_item['id']) }}" class="match-link">Xem bài đăng →</a>
+            </div>
+        </div>
+
+        <!-- Action -->
+        {% if session.get('user_id') %}
+        <div style="text-align:center;margin-top:12px;">
+            <a href="{{ url_for('post_detail', post_id=found_item['id']) }}"
+               class="btn primary" style="font-size:13px;padding:8px 18px;">
+                Liên hệ / Xác minh ngay
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div style="text-align:center;padding:60px 20px;color:#94a3b8;">
+    <div style="font-size:56px;margin-bottom:16px;">🤖</div>
+    <h3 style="font-size:18px;font-weight:700;color:#374151;margin-bottom:8px;">Chưa có cặp nào đủ ngưỡng gợi ý</h3>
+    <p style="font-size:14px;">Hệ thống sẽ gợi ý khi có đồ mất và đồ nhặt có điểm tương đồng ≥ 30.</p>
+    <div style="margin-top:20px;display:flex;gap:12px;justify-content:center;">
+        <a href="{{ url_for('create_post') }}" class="btn primary">Đăng tin ngay</a>
+        <a href="{{ url_for('lost_posts') }}" class="btn ghost">Xem tin mất đồ</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

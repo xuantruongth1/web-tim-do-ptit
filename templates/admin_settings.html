@@ -1,0 +1,122 @@
+{% extends "base_admin.html" %}
+{% block admin_title %}Cài đặt hệ thống{% endblock %}
+
+{% block admin_content %}
+<div class="adm-page-head">
+    <h1>⚙️ Cài đặt Hệ thống</h1>
+    <p>Thông tin trang web, ngân hàng, gói VIP và bật/tắt tính năng.</p>
+</div>
+
+<form method="POST" action="{{ url_for('admin_settings') }}">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+<!-- Thông tin trang -->
+<div class="adm-card">
+    <div class="adm-card-title">🌐 Thông tin trang web</div>
+    <div class="adm-form-group">
+        <label class="adm-form-label">Tên trang web</label>
+        <input type="text" name="site_name" class="adm-form-input" value="{{ s.get('site_name','PTIT Lost & Found') }}">
+    </div>
+    <div class="adm-form-group">
+        <label class="adm-form-label">Mô tả ngắn</label>
+        <input type="text" name="site_description" class="adm-form-input" value="{{ s.get('site_description','') }}">
+    </div>
+    <div class="adm-form-group">
+        <label class="adm-form-label">Số điện thoại liên hệ</label>
+        <input type="text" name="contact_phone" class="adm-form-input" value="{{ s.get('contact_phone','') }}">
+    </div>
+    <div class="adm-form-group">
+        <label class="adm-form-label">Email liên hệ</label>
+        <input type="email" name="contact_email" class="adm-form-input" value="{{ s.get('contact_email','') }}">
+    </div>
+    <div class="adm-form-group">
+        <label class="adm-form-label">Địa chỉ</label>
+        <input type="text" name="contact_address" class="adm-form-input" value="{{ s.get('contact_address','') }}">
+    </div>
+</div>
+
+<!-- Ngân hàng -->
+<div class="adm-card">
+    <div class="adm-card-title">🏦 Thông tin ngân hàng</div>
+    <div class="adm-form-group">
+        <label class="adm-form-label">Tên ngân hàng</label>
+        <input type="text" name="bank_name" class="adm-form-input" value="{{ s.get('bank_name','') }}">
+    </div>
+    <div class="adm-form-group">
+        <label class="adm-form-label">Số tài khoản</label>
+        <input type="text" name="bank_account" class="adm-form-input" value="{{ s.get('bank_account','') }}">
+    </div>
+    <div class="adm-form-group">
+        <label class="adm-form-label">Tên chủ tài khoản</label>
+        <input type="text" name="bank_owner" class="adm-form-input" value="{{ s.get('bank_owner','') }}">
+    </div>
+
+    <div class="adm-card-title" style="margin-top:16px;">⚙️ Giới hạn hệ thống</div>
+    <div class="adm-form-group">
+        <label class="adm-form-label">Số bài tối đa / người dùng (0 = không giới hạn)</label>
+        <input type="number" name="max_posts_per_user" min="0" class="adm-form-input" value="{{ s.get('max_posts_per_user','0') }}">
+    </div>
+    <div class="adm-form-group">
+        <label class="adm-form-label">Kích thước ảnh tối đa (MB)</label>
+        <input type="number" name="max_image_size_mb" min="1" max="50" class="adm-form-input" value="{{ s.get('max_image_size_mb','5') }}">
+    </div>
+    <div class="adm-form-group">
+        <label class="adm-form-label">Tự ẩn bài đã giải quyết sau (ngày, 0 = tắt)</label>
+        <input type="number" name="auto_hide_resolved_days" min="0" class="adm-form-input" value="{{ s.get('auto_hide_resolved_days','0') }}">
+    </div>
+</div>
+
+</div>
+
+<!-- Tính năng -->
+<div class="adm-card" style="margin-top:20px;">
+    <div class="adm-card-title">🔧 Bật / Tắt tính năng</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+        {% for key, label in [('feature_vip','⚡ Gói VIP'), ('feature_ai','🤖 AI Matching'), ('feature_chat','💬 Chat'), ('feature_comments','📝 Bình luận')] %}
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;background:#1e293b;border-radius:10px;padding:12px 14px;">
+            <input type="checkbox" name="{{ key }}" value="1" {{ 'checked' if s.get(key,'1') == '1' }}
+                   style="width:18px;height:18px;cursor:pointer;accent-color:#3b82f6;">
+            <span style="font-size:13px;font-weight:600;color:#e2e8f0;">{{ label }}</span>
+        </label>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Gói VIP -->
+<div class="adm-card" style="margin-top:20px;">
+    <div class="adm-card-title">⚡ Cấu hình Gói VIP</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+        {% for i in [1,2,3] %}
+        {% set pfx = 'vip_goi_' ~ i ~ '_' %}
+        <div style="background:#1e293b;border-radius:10px;padding:16px;">
+            <div style="font-size:13px;font-weight:800;color:#7c3aed;margin-bottom:12px;">Gói {{ i }}</div>
+            <div class="adm-form-group">
+                <label class="adm-form-label">Tên gói</label>
+                <input type="text" name="{{ pfx }}name" class="adm-form-input" value="{{ s.get(pfx ~ 'name', 'Gói ' ~ i) }}">
+            </div>
+            <div class="adm-form-group">
+                <label class="adm-form-label">Giá (VNĐ)</label>
+                <input type="number" name="{{ pfx }}price" min="0" step="1000" class="adm-form-input" value="{{ s.get(pfx ~ 'price', '0') }}">
+            </div>
+            <div class="adm-form-group">
+                <label class="adm-form-label">Số ngày hiển thị</label>
+                <input type="number" name="{{ pfx }}days" min="1" class="adm-form-input" value="{{ s.get(pfx ~ 'days', '30') }}">
+            </div>
+            <div class="adm-form-group">
+                <label class="adm-form-label">Mức ưu tiên (0–3)</label>
+                <input type="number" name="{{ pfx }}priority" min="0" max="3" class="adm-form-input" value="{{ s.get(pfx ~ 'priority', '1') }}">
+            </div>
+            <div class="adm-form-group">
+                <label class="adm-form-label">Nhãn hiển thị</label>
+                <input type="text" name="{{ pfx }}label" class="adm-form-input" value="{{ s.get(pfx ~ 'label', '') }}" placeholder="VD: Phổ biến">
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div style="margin-top:20px;text-align:right;">
+    <button type="submit" class="adm-btn adm-btn-primary" style="padding:10px 28px;font-size:14px;">💾 Lưu cài đặt</button>
+</div>
+</form>
+{% endblock %}

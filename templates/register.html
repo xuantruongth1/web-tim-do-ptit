@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Đăng ký{% endblock %}
+{% block content %}
+<div class="auth-box">
+    <h1>Đăng ký tài khoản</h1>
+    <form method="post" id="registerForm" novalidate>
+        <input type="text" name="full_name" id="regFullName" placeholder="Họ và tên" required autocomplete="name"
+               value="{{ request.form.get('full_name', '') if request.method == 'POST' else '' }}">
+        <input type="text" name="username" id="regUsername" placeholder="Tên đăng nhập" required autocomplete="username"
+               value="{{ request.form.get('username', '') if request.method == 'POST' else '' }}">
+        <input type="email" name="email" id="regEmail" placeholder="Email (để nhận thông báo, không bắt buộc)" autocomplete="email"
+               value="{{ request.form.get('email', '') if request.method == 'POST' else '' }}">
+        <div style="position:relative">
+            <input type="password" name="password" id="regPassword" placeholder="Mật khẩu (tối thiểu 6 ký tự)" required autocomplete="new-password" style="padding-right:48px">
+            <button type="button" id="togglePwd" tabindex="-1"
+                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;font-size:18px;padding:0;line-height:1">
+                👁
+            </button>
+        </div>
+        <div id="pwdStrength" style="display:none;font-size:12px;margin-top:-8px;padding:4px 2px"></div>
+        <button type="submit" class="btn primary full">Đăng ký</button>
+    </form>
+    <p class="hint">Đã có tài khoản? <a href="{{ url_for('login') }}">Đăng nhập</a></p>
+</div>
+
+<script>
+(function () {
+    var pwdInput = document.getElementById('regPassword');
+    var strength = document.getElementById('pwdStrength');
+    var toggle   = document.getElementById('togglePwd');
+
+    // Hiển thị/ẩn mật khẩu
+    toggle.addEventListener('click', function () {
+        if (pwdInput.type === 'password') {
+            pwdInput.type = 'text';
+            toggle.textContent = '🙈';
+        } else {
+            pwdInput.type = 'password';
+            toggle.textContent = '👁';
+        }
+    });
+
+    // Thanh độ mạnh mật khẩu
+    pwdInput.addEventListener('input', function () {
+        var val = pwdInput.value;
+        if (!val) { strength.style.display = 'none'; return; }
+        strength.style.display = 'block';
+        var score = 0;
+        if (val.length >= 6)  score++;
+        if (val.length >= 10) score++;
+        if (/[A-Z]/.test(val)) score++;
+        if (/[0-9]/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+        var labels = ['', 'Rất yếu', 'Yếu', 'Trung bình', 'Mạnh', 'Rất mạnh'];
+        var colors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e', '#16a34a'];
+        strength.textContent = 'Độ mạnh: ' + (labels[score] || labels[1]);
+        strength.style.color = colors[score] || colors[1];
+    });
+
+    // Validate trước khi submit
+    document.getElementById('registerForm').addEventListener('submit', function (e) {
+        var fullName = document.getElementById('regFullName').value.trim();
+        var username = document.getElementById('regUsername').value.trim();
+        var password = pwdInput.value;
+
+        if (!fullName) {
+            e.preventDefault();
+            showAuthToast('Vui lòng nhập họ và tên.', 'danger');
+            document.getElementById('regFullName').focus();
+            return;
+        }
+        if (!username) {
+            e.preventDefault();
+            showAuthToast('Vui lòng nhập tên đăng nhập.', 'danger');
+            document.getElementById('regUsername').focus();
+            return;
+        }
+        if (username.length < 3) {
+            e.preventDefault();
+            showAuthToast('Tên đăng nhập phải có ít nhất 3 ký tự.', 'danger');
+            document.getElementById('regUsername').focus();
+            return;
+        }
+        if (password.length < 6) {
+            e.preventDefault();
+            pwdInput.value = '';
+            pwdInput.focus();
+            strength.style.display = 'none';
+            showAuthToast('Mật khẩu phải có ít nhất 6 ký tự.', 'danger');
+            return;
+        }
+    });
+})();
+</script>
+{% endblock %}

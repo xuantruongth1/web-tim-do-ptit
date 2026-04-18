@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}Sửa bài đăng — PTIT Lost & Found{% endblock %}
+{% block content %}
+<section class="section-head left">
+    <h1>✏️ Chỉnh sửa bài đăng</h1>
+    <p>Cập nhật thông tin bài đăng #{{ post['id'] }}. Bài sẽ hiển thị ngay sau khi lưu.</p>
+</section>
+
+<div class="form-card" style="max-width:700px;margin:0 auto;">
+    <form method="POST" enctype="multipart/form-data">
+
+        <!-- Tiêu đề -->
+        <div class="form-group">
+            <label>Tiêu đề <span class="req">*</span></label>
+            <input type="text" name="title" value="{{ post['title'] }}" required maxlength="150"
+                   placeholder="Ví dụ: Mất ví da màu đen tại thư viện">
+        </div>
+
+        <!-- Loại & danh mục -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group">
+                <label>Loại bài đăng</label>
+                <input type="text" value="{{ 'Mất đồ' if post['post_type'] == 'lost' else 'Nhặt được' }}" disabled
+                       style="background:#f8fafc;color:#6b7280;">
+                <small style="color:#94a3b8;">Không thể thay đổi loại bài sau khi tạo.</small>
+            </div>
+            <div class="form-group">
+                <label>Danh mục <span class="req">*</span></label>
+                <select name="category" required>
+                    {% for cat in categories %}
+                        <option value="{{ cat['name'] }}" {{ 'selected' if post['category'] == cat['name'] }}>{{ cat['icon'] }} {{ cat['name'] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Ngày và địa điểm -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group">
+                <label>Ngày xảy ra</label>
+                <input type="date" name="event_date"
+                       value="{{ post['event_date'] or '' }}">
+            </div>
+            <div class="form-group">
+                <label>Thành phố</label>
+                <select name="city">
+                    {% set cities = ['Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Hải Phòng', 'Khác'] %}
+                    <option value="">-- Chọn thành phố --</option>
+                    {% for city in cities %}
+                        <option value="{{ city }}" {{ 'selected' if post['city'] == city }}>{{ city }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Địa điểm cụ thể -->
+        <div class="form-group">
+            <label>Địa điểm cụ thể <span class="req">*</span></label>
+            <input type="text" name="location" value="{{ post['location'] }}" required
+                   placeholder="Ví dụ: Thư viện PTIT tầng 3, nhà A">
+        </div>
+
+        <!-- Cơ sở -->
+        <div class="form-group">
+            <label>Cơ sở / Khu vực</label>
+            <select name="campus">
+                <option value="">-- Không rõ --</option>
+                {% for campus in ['Cơ sở Hà Nội', 'Cơ sở TP.HCM', 'Ký túc xá', 'Khuôn viên chính', 'Khác'] %}
+                    <option value="{{ campus }}" {{ 'selected' if post['campus'] == campus }}>{{ campus }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Mô tả -->
+        <div class="form-group">
+            <label>Mô tả chi tiết</label>
+            <textarea name="description" rows="4"
+                      placeholder="Mô tả màu sắc, hình dáng, đặc điểm nhận dạng...">{{ post['description'] or '' }}</textarea>
+        </div>
+
+        <!-- Thông tin xác thực -->
+        <div class="form-group" style="background:#fffbeb;border:1px solid #fde68a;padding:16px;border-radius:12px;">
+            <label>🔑 Thông tin xác thực (công khai) <span class="req">*</span></label>
+            <input type="text" name="verification_hint" value="{{ post['verification_hint'] or '' }}"
+                   placeholder="Câu hỏi/gợi ý để người nhặt/mất xác minh, ví dụ: 'Ví màu gì?'">
+            <small style="color:#92400e;margin-top:6px;display:block;">Thông tin này hiển thị công khai giúp xác minh chủ nhân.</small>
+        </div>
+
+        <div class="form-group" style="background:#f0fdf4;border:1px solid #bbf7d0;padding:16px;border-radius:12px;">
+            <label>🔒 Ghi chú riêng tư (chỉ admin/chủ xem) <span class="req">*</span></label>
+            <input type="text" name="private_verification_note" value="{{ post['private_verification_note'] or '' }}"
+                   placeholder="Đặc điểm bí mật chỉ chủ mới biết, ví dụ: 'Có ảnh con mèo trong ví'">
+            <small style="color:#15803d;margin-top:6px;display:block;">Không hiển thị công khai. Dùng để xác minh chắc chắn.</small>
+        </div>
+
+        <!-- Liên hệ -->
+        <div class="form-group">
+            <label>Thông tin liên hệ <span class="req">*</span></label>
+            <input type="text" name="contact" value="{{ post['contact'] }}" required
+                   placeholder="Số điện thoại hoặc Facebook/Zalo">
+        </div>
+
+        <!-- Tags -->
+        <div class="form-group">
+            <label style="font-weight:700;">Tags <span style="font-weight:400;font-size:12px;color:#94a3b8;">(Tối đa 3)</span></label>
+            <div id="tag-chips" style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px;margin-bottom:10px;"></div>
+            <div style="display:flex;gap:8px;">
+                <input type="text" id="tag-input" placeholder="Nhập tag rồi nhấn Enter..."
+                    maxlength="30"
+                    style="flex:1;padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;">
+                <button type="button" onclick="addTag()"
+                    style="padding:8px 14px;background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Thêm</button>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
+                {% for pt in ['Mất ví','Mất CCCD','Mất chìa khóa','Mất điện thoại','Mất thẻ xe','Mất laptop','Mất thẻ sinh viên','Mất tai nghe'] %}
+                <button type="button" onclick="addTagValue('{{ pt }}')"
+                    style="padding:4px 10px;border-radius:999px;border:1.5px solid #16a34a;background:white;color:#16a34a;font-size:12px;font-weight:600;cursor:pointer;">
+                    + {{ pt }}
+                </button>
+                {% endfor %}
+            </div>
+            <input type="hidden" name="tags" id="tags-hidden">
+        </div>
+
+        <!-- Ảnh -->
+        <div class="form-group">
+            <label>Cập nhật ảnh (để trống giữ ảnh cũ)</label>
+            {% if post['image'] %}
+            <div style="margin-bottom:10px;">
+                <img src="{{ url_for('static', filename='uploads/' ~ post['image']) }}"
+                     style="max-width:180px;border-radius:10px;border:1px solid #e5e7eb;">
+                <p style="font-size:12px;color:#6b7280;margin-top:4px;">Ảnh hiện tại</p>
+            </div>
+            {% endif %}
+            <input type="file" name="image" accept=".png,.jpg,.jpeg,.gif">
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex;gap:12px;margin-top:8px;">
+            <button type="submit" class="btn primary" style="flex:1;padding:13px;">💾 Lưu thay đổi</button>
+            <a href="{{ url_for('post_detail', post_id=post['id']) }}"
+               class="btn ghost" style="flex:1;padding:13px;text-align:center;">Hủy</a>
+        </div>
+    </form>
+</div>
+<script>
+var _tags = {{ (post['tags'] or '')|tojson }}.split(',').map(s=>s.trim()).filter(Boolean);
+var MAX_TAGS = 3;
+function renderTags() {
+    var chips = document.getElementById('tag-chips');
+    chips.innerHTML = '';
+    _tags.forEach(function(t, i) {
+        var chip = document.createElement('span');
+        chip.style.cssText = 'display:inline-flex;align-items:center;gap:5px;background:#dcfce7;color:#15803d;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;';
+        chip.innerHTML = t + '<button type="button" onclick="removeTag(' + i + ')" style="background:none;border:none;cursor:pointer;color:#16a34a;font-size:14px;line-height:1;padding:0;">×</button>';
+        chips.appendChild(chip);
+    });
+    document.getElementById('tags-hidden').value = _tags.join(',');
+}
+function addTagValue(val) {
+    val = val.trim().toLowerCase();
+    if (!val || _tags.length >= MAX_TAGS || _tags.indexOf(val) !== -1) return;
+    _tags.push(val); renderTags();
+}
+function addTag() {
+    var inp = document.getElementById('tag-input');
+    addTagValue(inp.value.replace(/,/g,''));
+    inp.value = '';
+}
+function removeTag(i) { _tags.splice(i,1); renderTags(); }
+document.getElementById('tag-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(); }
+});
+renderTags();
+</script>
+{% endblock %}

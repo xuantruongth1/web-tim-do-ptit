@@ -1,0 +1,153 @@
+{% extends "base_admin.html" %}
+{% block admin_title %}Voucher{% endblock %}
+
+{% block admin_content %}
+<div class="adm-page-head">
+    <h1>🎟️ Quản lý Voucher</h1>
+    <p>Tạo và quản lý mã giảm giá cho gói VIP.</p>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start;">
+
+<!-- Voucher list -->
+<div class="adm-card">
+    <div class="adm-card-title">Danh sách voucher ({{ vouchers|length }})</div>
+    <div class="adm-table-wrap">
+        <table class="adm-table">
+            <thead>
+                <tr>
+                    <th>Mã</th><th>Loại giảm</th><th>Giá trị</th><th>Đã dùng</th>
+                    <th>Hạn dùng</th><th>Gói áp dụng</th><th>Trạng thái</th><th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in vouchers %}
+                <tr>
+                    <td>
+                        <span style="font-family:monospace;font-weight:800;font-size:13px;background:#1e293b;padding:3px 8px;border-radius:6px;color:#60a5fa;">{{ v["code"] }}</span>
+                        {% if v["note"] %}
+                        <div style="font-size:10px;color:#94a3b8;margin-top:3px;">{{ v["note"] }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if v['discount_type'] == 'percent' %}
+                        <span class="adm-badge adm-badge-info">% Phần trăm</span>
+                        {% else %}
+                        <span class="adm-badge adm-badge-warning">đ Cố định</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight:700;">
+                        {% if v['discount_type'] == 'percent' %}
+                        <span style="color:#3b82f6;">{{ v["discount_value"] }}%</span>
+                        {% else %}
+                        <span style="color:#16a34a;">{{ "{:,}".format(v["discount_value"]) }}đ</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align:center;font-size:13px;">
+                        <span style="color:{{ '#ef4444' if v['max_uses'] > 0 and v['used_count'] >= v['max_uses'] else '#e2e8f0' }};">
+                            {{ v["used_count"] }}{% if v["max_uses"] > 0 %}/{{ v["max_uses"] }}{% endif %}
+                        </span>
+                    </td>
+                    <td style="font-size:11px;color:#94a3b8;">
+                        {% if v["valid_from"] or v["valid_until"] %}
+                        {{ v["valid_from"][:10] if v["valid_from"] else "—" }} →<br>{{ v["valid_until"][:10] if v["valid_until"] else "—" }}
+                        {% else %}
+                        Không giới hạn
+                        {% endif %}
+                    </td>
+                    <td style="font-size:11px;color:#94a3b8;">
+                        {% if v["applicable_packages"] %}
+                        {{ v["applicable_packages"] }}
+                        {% else %}
+                        Tất cả
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if v["is_active"] %}
+                        <span class="adm-badge adm-badge-active">✅ Bật</span>
+                        {% else %}
+                        <span class="adm-badge adm-badge-rejected">❌ Tắt</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display:flex;flex-direction:column;gap:4px;">
+                            <form method="POST" action="{{ url_for('admin_voucher_toggle', voucher_id=v['id']) }}">
+                                <button type="submit" class="adm-btn adm-btn-sm {{ 'adm-btn-warning' if v['is_active'] else 'adm-btn-success' }}" style="width:100%;">
+                                    {{ '🙈 Tắt' if v['is_active'] else '✅ Bật' }}
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('admin_voucher_delete', voucher_id=v['id']) }}">
+                                <button type="button" class="adm-btn adm-btn-sm adm-btn-danger" style="width:100%;"
+                                    onclick="admConfirm('Xóa voucher {{ v.code }}?', this.closest('form'), {danger:true,icon:'🗑️',okLabel:'Xóa'})">🗑️ Xóa</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:40px;">Chưa có voucher nào.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add form -->
+<div class="adm-card">
+    <div class="adm-card-title">➕ Tạo voucher mới</div>
+    <form method="POST" action="{{ url_for('admin_voucher_add') }}">
+        <div class="adm-form-group">
+            <label class="adm-form-label">Mã voucher <span style="color:#ef4444;">*</span></label>
+            <input type="text" name="code" class="adm-form-input" placeholder="VD: PTIT2026" required
+                   style="font-family:monospace;text-transform:uppercase;">
+        </div>
+        <div class="adm-form-group">
+            <label class="adm-form-label">Loại giảm giá</label>
+            <select name="discount_type" class="adm-form-input" id="discountTypeSelect" onchange="updateDiscountLabel()">
+                <option value="percent">% Phần trăm (VD: 20%)</option>
+                <option value="fixed">đ Cố định (VD: 50,000đ)</option>
+            </select>
+        </div>
+        <div class="adm-form-group">
+            <label class="adm-form-label" id="discountLabel">Giá trị giảm (%) <span style="color:#ef4444;">*</span></label>
+            <input type="number" name="discount_value" class="adm-form-input" min="1" required placeholder="VD: 20">
+        </div>
+        <div class="adm-form-group">
+            <label class="adm-form-label">Số lượt dùng tối đa (0 = không giới hạn)</label>
+            <input type="number" name="max_uses" class="adm-form-input" value="0" min="0">
+        </div>
+        <div class="adm-form-group">
+            <label class="adm-form-label">Hiệu lực từ ngày</label>
+            <input type="datetime-local" name="valid_from" class="adm-form-input">
+        </div>
+        <div class="adm-form-group">
+            <label class="adm-form-label">Hết hạn ngày</label>
+            <input type="datetime-local" name="valid_until" class="adm-form-input">
+        </div>
+        <div class="adm-form-group">
+            <label class="adm-form-label">Áp dụng cho gói (không chọn = tất cả)</label>
+            {% for key, pkg in vip_packages.items() %}
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#94a3b8;margin-bottom:6px;cursor:pointer;">
+                <input type="checkbox" name="applicable_packages" value="{{ key }}" style="accent-color:#3b82f6;width:15px;height:15px;">
+                {{ pkg.get('name', key) }}
+            </label>
+            {% endfor %}
+        </div>
+        <div class="adm-form-group">
+            <label class="adm-form-label">Ghi chú nội bộ</label>
+            <input type="text" name="note" class="adm-form-input" placeholder="VD: Tặng sinh viên mới">
+        </div>
+        <button type="submit" class="adm-btn adm-btn-primary" style="width:100%;">🎟️ Tạo voucher</button>
+    </form>
+</div>
+
+</div>
+
+{% block admin_extra_js %}
+<script>
+function updateDiscountLabel() {
+    var t = document.getElementById('discountTypeSelect').value;
+    document.getElementById('discountLabel').textContent = (t === 'percent' ? 'Giá trị giảm (%)' : 'Giá trị giảm (đ)') + ' *';
+}
+</script>
+{% endblock %}
+{% endblock %}

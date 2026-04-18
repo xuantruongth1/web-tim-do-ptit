@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//d/d/HocTap/ptit_lost_found_upgrade/templates/**)",
+      "Bash(python app.py)",
+      "Bash(python test_error.py)"
+    ]
+  }
+}

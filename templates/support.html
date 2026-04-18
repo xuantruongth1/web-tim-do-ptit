@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Hỗ trợ dự án — PTIT Lost & Found{% endblock %}
+
+{% block content %}
+<div style="max-width:860px; margin:0 auto;">
+
+    <!-- Page title -->
+    <div style="margin-bottom:24px;">
+        <h1 style="font-size:24px;font-weight:800;color:#0f172a;margin-bottom:6px;">👉 Hỗ trợ dự án</h1>
+        <p style="font-size:14px;color:#64748b;">Đóng góp giúp chúng tôi duy trì và phát triển nền tảng tìm đồ thất lạc miễn phí.</p>
+    </div>
+
+    <!-- Green hero banner -->
+    <div class="support-hero">
+        <div style="font-size:22px;margin-bottom:10px;">❤️ Ủng hộ dự án của chúng tôi</div>
+        <p>
+            Nếu bạn cảm thấy dự án <strong>"PTIT Lost &amp; Found"</strong> mang lại giá trị,
+            hãy cân nhắc đóng góp để chúng tôi có thể tiếp tục phát triển.
+        </p>
+        <p style="margin-top:8px;">Mọi khoản <strong>quyên góp tự nguyện</strong> đều được trân trọng và công khai.</p>
+    </div>
+
+    <!-- Payment section -->
+    <div class="support-card">
+        <div class="support-card-label">Thông tin chuyển khoản</div>
+
+        <div class="support-layout">
+            <!-- Left: bank info -->
+            <div class="support-info">
+
+                <!-- Bank selector (static display) -->
+                <div class="support-bank-select">
+                    <div class="support-bank-logo mb-logo">
+                        <span style="font-size:22px;">🏦</span>
+                        <div>
+                            <div style="font-weight:800;font-size:15px;color:#0f172a;">MB Bank</div>
+                            <div style="font-size:12px;color:#64748b;">Ngân hàng Quân đội</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account fields -->
+                <div class="support-field">
+                    <span class="support-field-label">Số tài khoản</span>
+                    <div class="support-field-value">
+                        <span id="accNum">0359090502</span>
+                        <button class="copy-btn" onclick="copyText('0359090502', this)" title="Sao chép">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="support-field">
+                    <span class="support-field-label">Tên chủ tài khoản</span>
+                    <div class="support-field-value">
+                        <span>MAI XUAN TRUONG</span>
+                    </div>
+                </div>
+
+                <div class="support-field">
+                    <span class="support-field-label">Ngân hàng</span>
+                    <div class="support-field-value">
+                        <span>MB Bank (Ngân hàng Quân đội)</span>
+                    </div>
+                </div>
+
+                <div class="support-field">
+                    <span class="support-field-label">Nội dung chuyển khoản</span>
+                    <div class="support-field-value">
+                        <span id="transferNote">Ung ho PTIT Lost Found</span>
+                        <button class="copy-btn" onclick="copyText('Ung ho PTIT Lost Found', this)" title="Sao chép">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Amount suggestion -->
+                <div style="margin-top:16px;">
+                    <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;">Gợi ý số tiền</div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button class="amount-chip" onclick="selectAmount(this, '20000')">20.000đ</button>
+                        <button class="amount-chip" onclick="selectAmount(this, '50000')">50.000đ</button>
+                        <button class="amount-chip" onclick="selectAmount(this, '100000')">100.000đ</button>
+                        <button class="amount-chip" onclick="selectAmount(this, '200000')">200.000đ ☕</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: QR code -->
+            <div class="support-qr">
+                <div class="support-qr-wrap">
+                    <div style="font-size:11px;color:#94a3b8;margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Quét để chuyển khoản</div>
+                    <img id="qrImg"
+                        src="https://img.vietqr.io/image/MB-0359090502-compact2.png?addInfo=Ung+ho+PTIT+Lost+Found&accountName=MAI+XUAN+TRUONG"
+                        alt="QR Chuyển khoản MB Bank"
+                        class="support-qr-img"
+                        onerror="this.style.display='none';document.getElementById('qrFallback').style.display='flex'">
+                    <div id="qrFallback" style="display:none;width:200px;height:200px;border:2px dashed #e2e8f0;border-radius:12px;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:#94a3b8;font-size:13px;">
+                        <div style="font-size:32px;">📷</div>
+                        <span>Không tải được QR</span>
+                    </div>
+                    <div style="margin-top:10px;font-size:12px;color:#64748b;text-align:center;line-height:1.5;">
+                        <strong style="color:#0f172a;">MAI XUAN TRUONG</strong><br>
+                        MB Bank · 0359090502
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thank you note -->
+    <div class="support-thankyou">
+        <span style="color:#16a34a;font-weight:700;margin-right:6px;">✓</span>
+        Chúng tôi chân thành cảm ơn sự đóng góp của bạn. Những đóng góp của bạn không chỉ giúp chúng tôi
+        duy trì công việc mà còn góp phần làm cho cộng đồng trở nên vững mạnh hơn, từ đó có thể hỗ trợ
+        được nhiều người hơn. Sự ghi nhận và hỗ trợ từ bạn là động lực quý giá của chúng tôi.
+    </div>
+
+    <!-- FAQ -->
+    <div class="support-card" style="margin-top:20px;">
+        <div class="support-card-label">Câu hỏi thường gặp</div>
+        <div style="display:flex;flex-direction:column;gap:14px;margin-top:4px;">
+            <div class="support-faq-item">
+                <div class="support-faq-q">💬 Đóng góp có bắt buộc không?</div>
+                <div class="support-faq-a">Hoàn toàn tự nguyện. Website PTIT Lost &amp; Found luôn miễn phí 100% cho mọi người dùng.</div>
+            </div>
+            <div class="support-faq-item">
+                <div class="support-faq-q">💬 Tiền đóng góp dùng để làm gì?</div>
+                <div class="support-faq-a">Chi phí hosting, tên miền, duy trì máy chủ và phát triển thêm tính năng mới cho cộng đồng.</div>
+            </div>
+            <div class="support-faq-item">
+                <div class="support-faq-q">💬 Làm thế nào để biết đóng góp đã nhận được?</div>
+                <div class="support-faq-a">Bạn có thể liên hệ qua email hoặc Zalo với số điện thoại trên để xác nhận.</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(function() {
+        var orig = btn.innerHTML;
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+        btn.style.color = '#16a34a';
+        setTimeout(function() { btn.innerHTML = orig; btn.style.color = ''; }, 1800);
+    });
+}
+
+function selectAmount(btn, amount) {
+    document.querySelectorAll('.amount-chip').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    var url = 'https://img.vietqr.io/image/MB-0359090502-compact2.png?amount=' + amount + '&addInfo=Ung+ho+PTIT+Lost+Found&accountName=MAI+XUAN+TRUONG';
+    document.getElementById('qrImg').src = url;
+}
+</script>
+{% endblock %}

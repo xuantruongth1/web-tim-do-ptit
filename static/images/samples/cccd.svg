@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#g)"/>
+  <circle cx="200" cy="128" r="72" fill="rgba(255,255,255,0.18)"/>
+  <text x="200" y="158" text-anchor="middle" font-size="76" font-family="Segoe UI Emoji,Apple Color Emoji,sans-serif">🪪</text>
+  <text x="200" y="230" text-anchor="middle" font-size="21" font-family="Segoe UI,Arial,sans-serif" fill="rgba(255,255,255,0.96)" font-weight="700">Thẻ căn cước / CMND</text>
+  <text x="200" y="264" text-anchor="middle" font-size="13" font-family="Segoe UI,Arial,sans-serif" fill="rgba(255,255,255,0.65)">PTIT Lost &amp; Found</text>
+</svg>
