@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends "base.html" %}
 {% block title %}Tìm kiếm{% endblock %}
 {% block content %}
@@ -216,3 +217,71 @@
 })();
 </script>
 {% endblock %}
+=======
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Tìm kiếm</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<header class="navbar">
+    <div class="logo">PTIT Lost & Found</div>
+    <nav>
+        <a href="/">Trang chủ</a>
+        <a href="/lost">Đăng mất đồ</a>
+        <a href="/found">Đăng nhặt được</a>
+        <a href="/list">Danh sách</a>
+        <a href="/search">Tìm kiếm</a>
+        <a href="/match">Gợi ý</a>
+    </nav>
+</header>
+
+<div class="container">
+
+    <div class="search-box">
+        <h2>Tìm kiếm đồ vật</h2>
+        <form method="post">
+            <input type="text" name="keyword" placeholder="Nhập tên đồ vật cần tìm">
+            <button type="submit">Tìm kiếm</button>
+        </form>
+    </div>
+
+    <h2>Kết quả đồ bị mất</h2>
+    {% for i in lost %}
+    <div class="item">
+        <h3>{{ i[1] }}</h3>
+
+        {% if i[7] %}
+        <img src="{{ url_for('static', filename='uploads/' ~ i[7]) }}" class="item-image">
+        {% endif %}
+
+        <p><b>Loại:</b> {{ i[2] }}</p>
+        <p><b>Mô tả:</b> {{ i[3] }}</p>
+        <p><b>Địa điểm:</b> {{ i[4] }}</p>
+        <p><b>Liên hệ:</b> {{ i[6] }}</p>
+    </div>
+    {% endfor %}
+
+    <h2 style="margin-top:35px;">Kết quả đồ nhặt được</h2>
+    {% for i in found %}
+    <div class="item">
+        <h3>{{ i[1] }}</h3>
+
+        {% if i[7] %}
+        <img src="{{ url_for('static', filename='uploads/' ~ i[7]) }}" class="item-image">
+        {% endif %}
+
+        <p><b>Loại:</b> {{ i[2] }}</p>
+        <p><b>Mô tả:</b> {{ i[3] }}</p>
+        <p><b>Địa điểm:</b> {{ i[4] }}</p>
+        <p><b>Liên hệ:</b> {{ i[6] }}</p>
+    </div>
+    {% endfor %}
+
+</div>
+</body>
+</html>
+>>>>>>> 3d39c4c8c27d17042a79cfc1760b14683fd4db90
